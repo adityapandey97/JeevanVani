@@ -97,25 +97,23 @@ export async function query(text, params = []) {
 
   if (sqliteDb) {
     let orderedParams = [];
-    let sqliteQuery = text.replace(/\$([0-9]+)/g, (match, num) => {
-      const idx = parseInt(num, 10) - 1;
-      orderedParams.push(params[idx]);
-      return '?';
-    });
+    const hasDollarPlaceholders = /\$([0-9]+)/.test(text);
+    const sqliteQuery = hasDollarPlaceholders
+      ? text.replace(/\$([0-9]+)/g, (match, num) => {
+          const idx = parseInt(num, 10) - 1;
+          orderedParams.push(params[idx]);
+          return '?';
+        })
+      : text;
 
-    const isSelect = /^\s*SELECT/i.test(sqliteQuery);
-    const hasReturning = /RETURNING/i.test(sqliteQuery);
-    if (hasReturning) {
-      sqliteQuery = sqliteQuery.replace(/\s+RETURNING\s+.*$/i, '');
-    }
+    const queryParams = hasDollarPlaceholders ? orderedParams : params;
+    const stmt = sqliteDb.prepare(sqliteQuery);
 
-    if (isSelect || hasReturning) {
-      const stmt = sqliteDb.prepare(sqliteQuery);
-      const rows = stmt.all(...orderedParams);
+    if (stmt.reader) {
+      const rows = stmt.all(...queryParams);
       return { rows, rowCount: rows.length };
     } else {
-      const stmt = sqliteDb.prepare(sqliteQuery);
-      const result = stmt.run(...orderedParams);
+      const result = stmt.run(...queryParams);
       return {
         rows: result.lastInsertRowid ? [{ id: Number(result.lastInsertRowid) }] : [],
         rowCount: result.changes,
