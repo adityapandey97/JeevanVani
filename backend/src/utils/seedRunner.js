@@ -1,6 +1,14 @@
 import bcrypt from 'bcryptjs';
 import db from '../config/db.js';
-import { sampleSkills, sampleJobRoles, sampleAdminUser, sampleBeneficiaryUser } from '../data/seedData.js';
+import {
+  sampleSkills,
+  sampleJobRoles,
+  sampleAdminUser,
+  sampleBeneficiaryUser,
+  sampleJobs,
+  sampleCourses,
+  sampleKnowledgeDocs
+} from '../data/seedData.js';
 import { Skill, JobRole, User, BeneficiaryProfile } from '../models/index.js';
 
 export async function seedDatabase() {
@@ -84,27 +92,6 @@ export async function seedDatabase() {
         console.log(`[Seed] Created MongoDB Beneficiary User: ${beneEmail}`);
       }
 
-      // 5. Seed Beneficiary Profile
-      let beneProfile = await BeneficiaryProfile.findOne({ user: bene._id });
-      if (!beneProfile) {
-        await BeneficiaryProfile.create({
-          user: bene._id,
-          age: 23,
-          education: '10th Pass',
-          employment_status: 'Unemployed',
-          work_experience: '1 year helping local electrician',
-          preferred_location: 'Kanpur, UP',
-          willing_to_relocate: true,
-          employment_preference: 'Both',
-          profile_completion: 100,
-          skills: [
-            { name: 'Basic Wiring', category: 'Electrical', proficiency_level: 'Intermediate' },
-            { name: 'Tool Handling', category: 'General', proficiency_level: 'Basic' },
-          ],
-          interests: ['Electrical and Solar Installations'],
-        });
-      }
-
       console.log('[Seed] 🍃 MongoDB database seeding completed successfully!');
       return;
     }
@@ -166,7 +153,95 @@ export async function seedDatabase() {
       }
     }
 
-    // 3. Seed Sample Users (Admin & Beneficiary)
+    const allRolesRes = await db.query('SELECT id, role_name FROM job_roles');
+    const roleMap = new Map(allRolesRes.rows.map(r => [r.role_name.toLowerCase().trim(), r.id]));
+
+    // 3. Seed Verified Jobs
+    console.log(`[Seed] Inserting ${sampleJobs.length} verified livelihood jobs...`);
+    for (const job of sampleJobs) {
+      const existingJob = await db.query('SELECT id FROM jobs WHERE title = $1 AND organization = $2', [job.title, job.organization]);
+      if (existingJob.rows.length === 0) {
+        const roleId = roleMap.get(job.job_role_name?.toLowerCase()?.trim()) || null;
+        await db.query(
+          `INSERT INTO jobs (title, organization, sector, job_role_id, location, eligibility, salary, application_url, source, source_id, required_skills, is_verified, posted_at, expires_at, last_verified_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
+          [
+            job.title,
+            job.organization,
+            job.sector,
+            roleId,
+            job.location,
+            job.eligibility,
+            job.salary,
+            job.application_url,
+            job.source,
+            job.source_id,
+            job.required_skills,
+            job.is_verified,
+            job.posted_at,
+            job.expires_at,
+            job.last_verified_at
+          ]
+        );
+      }
+    }
+
+    // 4. Seed Verified NSQF Courses
+    console.log(`[Seed] Inserting ${sampleCourses.length} verified NSQF skilling courses...`);
+    for (const course of sampleCourses) {
+      const existingCourse = await db.query('SELECT id FROM courses WHERE course_name = $1', [course.course_name]);
+      if (existingCourse.rows.length === 0) {
+        const roleId = roleMap.get(course.job_role_name?.toLowerCase()?.trim()) || null;
+        await db.query(
+          `INSERT INTO courses (course_name, qualification_pack_id, job_role_id, nsqf_level, duration, eligibility, skills_covered, training_provider, training_center_location, mode, certification_body, rpl_available, enrollment_url, is_verified, source, stipend_info, last_verified_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
+          [
+            course.course_name,
+            course.qualification_pack_id,
+            roleId,
+            course.nsqf_level,
+            course.duration,
+            course.eligibility,
+            course.skills_covered,
+            course.training_provider,
+            course.training_center_location,
+            course.mode,
+            course.certification_body,
+            course.rpl_available,
+            course.enrollment_url,
+            course.is_verified,
+            course.source,
+            course.stipend_info,
+            course.last_verified_at
+          ]
+        );
+      }
+    }
+
+    // 5. Seed Grounded Knowledge Documents
+    console.log(`[Seed] Inserting ${sampleKnowledgeDocs.length} grounded knowledge documents...`);
+    for (const doc of sampleKnowledgeDocs) {
+      const existingDoc = await db.query('SELECT id FROM knowledge_docs WHERE title = $1', [doc.title]);
+      if (existingDoc.rows.length === 0) {
+        await db.query(
+          `INSERT INTO knowledge_docs (title, document_type, nsqf_level, sector, content, source, source_url, keywords, last_verified_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+          [
+            doc.title,
+            doc.document_type,
+            doc.nsqf_level,
+            doc.sector,
+            doc.content,
+            doc.source,
+            doc.source_url,
+            doc.keywords,
+            doc.last_verified_at
+          ]
+        );
+      }
+    }
+
+    // 6. Seed Sample Users (Admin & Beneficiary)
     const adminCheck = await db.query('SELECT id FROM users WHERE email = $1', [sampleAdminUser.email]);
     if (adminCheck.rows.length === 0) {
       const hashedAdminPw = await bcrypt.hash(sampleAdminUser.password, salt);
@@ -197,9 +272,9 @@ export async function seedDatabase() {
       const profCheck = await db.query('SELECT id FROM beneficiary_profiles WHERE user_id = $1', [beneUserId]);
       if (profCheck.rows.length === 0) {
         await db.query(
-          `INSERT INTO beneficiary_profiles (user_id, age, education, employment_status, work_experience, preferred_location, willing_to_relocate, employment_preference, profile_completion)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-          [beneUserId, 23, '10th Pass', 'Unemployed', '1 year helping local electrician', 'Kanpur, UP', 1, 'Both', 100]
+          `INSERT INTO beneficiary_profiles (user_id, age, education, employment_status, work_experience, preferred_location, willing_to_relocate, employment_preference, preferred_sector, profile_completion)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+          [beneUserId, 23, '10th Pass', 'Unemployed', '1 year helping local electrician', 'Kanpur, UP', 1, 'Both', 'Solar / Green Jobs', 100]
         );
 
         const basicWiringId = skillMap.get('basic wiring');
@@ -215,7 +290,7 @@ export async function seedDatabase() {
       }
     }
 
-    console.log('[Seed] Database seeding completed successfully!');
+    console.log('[Seed] Database seeding completed successfully with verified jobs, courses & knowledge base!');
   } catch (error) {
     console.error('[Seed Error] Failed to seed database:', error);
   }

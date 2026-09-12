@@ -2,7 +2,7 @@ import React from 'react';
 import { Briefcase, TrendingUp } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
-export function CareerTimeline({ careerPath = [], roleTitle = '' }) {
+export function CareerTimeline({ careerPath = [], roleTitle: _roleTitle = '' }) {
   const { language, t, tStage, tWage } = useLanguage();
 
   if (!careerPath || careerPath.length === 0) {

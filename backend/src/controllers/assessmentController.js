@@ -281,6 +281,26 @@ export async function submitAnswer(req, res, next) {
     if (updates.employment_preference !== undefined) {
       profileFields.push(`employment_preference = $${paramCounter++}`);
       profileValues.push(updates.employment_preference);
+    if (updates.name) {
+      await db.query('UPDATE users SET name = $1 WHERE id = $2', [updates.name, userId]).catch(() => {});
+    }
+    if (updates.preferred_sector !== undefined) {
+      profileFields.push(`preferred_sector = $${paramCounter++}`);
+      profileValues.push(updates.preferred_sector);
+    }
+    if (updates.training_preference !== undefined) {
+      profileFields.push(`training_preference = $${paramCounter++}`);
+      profileValues.push(updates.training_preference);
+    }
+    if (updates.constraints !== undefined) {
+      profileFields.push(`constraints = $${paramCounter++}`);
+      profileValues.push(updates.constraints);
+    }
+    if (updates.consent_granted) {
+      await db.query(
+        'INSERT INTO beneficiary_consents (user_id, consent_type, granted) VALUES ($1, $2, 1)',
+        [userId, 'PM-AJAY GIA Profiling & Matching']
+      ).catch(() => {});
     }
 
     const completionPercent = Math.min(100, Math.round(((questionIndex + 1) / ASSESSMENT_QUESTIONS.length) * 100));

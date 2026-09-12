@@ -70,7 +70,38 @@ export const recommendationService = {
   async deleteAdminJobRole(id) {
     const res = await api.delete(`/admin/job-roles/${id}`);
     return res.data;
-  }
+  },
+
+  async getAdminSkills() {
+    const res = await api.get('/admin/skills');
+    return res.data;
+  },
+
+  async getAdminJobs() {
+    const res = await api.get('/admin/jobs');
+    return res.data;
+  },
+
+  async getAdminCourses() {
+    const res = await api.get('/admin/courses');
+    return res.data;
+  },
+
+  async getAdminKnowledge() {
+    const res = await api.get('/admin/knowledge');
+    return res.data;
+  },
+
+  async getAdminHumanReviews() {
+    const res = await api.get('/admin/human-reviews');
+    return res.data;
+  },
+
+  async updateAdminHumanReview(id, reviewData) {
+    const res = await api.put(`/admin/human-reviews/${id}`, reviewData);
+    return res.data;
+  },
 };
 
 export default recommendationService;
+

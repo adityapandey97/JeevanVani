@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, AlertCircle, Volume2, Check } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Mic, MicOff, AlertCircle, Check } from 'lucide-react';
 import AudioWaveform from '../common/AudioWaveform';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -25,21 +25,14 @@ export function VoiceControls({ onSpeechResult, isListening, setIsListening }) {
     isListeningRef.current = isListening;
   }, [isListening]);
 
-  // Clean up on unmount
-  useEffect(() => {
-    return () => {
-      stopAllMedia();
-    };
-  }, []);
-
-  const stopAllMedia = () => {
+  const stopAllMedia = useCallback(() => {
     if (silenceTimerRef.current) {
       clearTimeout(silenceTimerRef.current);
     }
     if (recognitionRef.current) {
       try {
         recognitionRef.current.abort();
-      } catch (e) {}
+      } catch {}
       recognitionRef.current = null;
     }
     if (mediaStreamRef.current) {
@@ -49,15 +42,23 @@ export function VoiceControls({ onSpeechResult, isListening, setIsListening }) {
     if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
       try {
         audioContextRef.current.close();
-      } catch (e) {}
+      } catch {}
       audioContextRef.current = null;
     }
     setIsListening(false);
     setVolumeLevel(0);
-  };
+  }, [setIsListening]);
+
+  // Clean up on unmount
+  useEffect(() => {
+    return () => {
+      stopAllMedia();
+    };
+  }, [stopAllMedia]);
 
   // Start real microphone audio visualizer using Web Audio API
   const startAudioVisualizer = async () => {
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
@@ -201,7 +202,7 @@ export function VoiceControls({ onSpeechResult, isListening, setIsListening }) {
         if (isListeningRef.current) {
           try {
             recognition.start();
-          } catch (e) {
+          } catch {
             setIsListening(false);
           }
         }

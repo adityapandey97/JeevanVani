@@ -7,7 +7,7 @@ import RecommendationCard from '../components/Recommendation/RecommendationCard'
 import { Award, RotateCcw, Sparkles, AlertCircle, ArrowLeft } from 'lucide-react';
 
 export function Recommendations() {
-  const { user } = useAuth();
+  const { user: _user } = useAuth();
   const { language, t } = useLanguage();
   const navigate = useNavigate();
 

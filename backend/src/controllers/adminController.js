@@ -385,6 +385,104 @@ export async function deleteJobRole(req, res, next) {
   }
 }
 
+export async function getAdminSkills(req, res, next) {
+  try {
+    const result = await db.query('SELECT * FROM skills ORDER BY sector, name');
+    res.json({
+      success: true,
+      count: result.rows.length,
+      skills: result.rows,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getAdminJobs(req, res, next) {
+  try {
+    const result = await db.query('SELECT * FROM jobs ORDER BY created_at DESC, id DESC');
+    res.json({
+      success: true,
+      count: result.rows.length,
+      jobs: result.rows,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getAdminCourses(req, res, next) {
+  try {
+    const result = await db.query('SELECT * FROM courses ORDER BY nsqf_level ASC, id ASC');
+    res.json({
+      success: true,
+      count: result.rows.length,
+      courses: result.rows,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getAdminKnowledge(req, res, next) {
+  try {
+    const result = await db.query('SELECT * FROM knowledge_docs ORDER BY id ASC');
+    res.json({
+      success: true,
+      count: result.rows.length,
+      docs: result.rows,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getAdminHumanReviews(req, res, next) {
+  try {
+    const result = await db.query(
+      `SELECT hr.*, u.name as user_name, u.email as user_email, u.mobile as user_mobile,
+              bp.education, bp.work_experience, bp.preferred_sector
+       FROM human_reviews hr
+       JOIN users u ON hr.user_id = u.id
+       LEFT JOIN beneficiary_profiles bp ON u.id = bp.user_id
+       ORDER BY hr.created_at DESC`
+    );
+    res.json({
+      success: true,
+      count: result.rows.length,
+      reviews: result.rows,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateAdminHumanReview(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { status, reviewerNotes } = req.body;
+
+    const result = await db.query(
+      `UPDATE human_reviews
+       SET status = $1, reviewer_notes = $2, reviewed_at = CURRENT_TIMESTAMP
+       WHERE id = $3 RETURNING *`,
+      [status || 'approved', reviewerNotes || 'Approved by State Admin Officer', id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Review entry not found.' });
+    }
+
+    res.json({
+      success: true,
+      message: `Human review status updated to "${status}".`,
+      review: result.rows[0],
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export default {
   getDashboardStats,
   getUsers,
@@ -392,4 +490,11 @@ export default {
   createJobRole,
   updateJobRole,
   deleteJobRole,
+  getAdminSkills,
+  getAdminJobs,
+  getAdminCourses,
+  getAdminKnowledge,
+  getAdminHumanReviews,
+  updateAdminHumanReview,
 };
+

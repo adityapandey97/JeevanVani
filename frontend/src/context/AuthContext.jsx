@@ -11,6 +11,13 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem('jeevanvani_token') || null);
   const [loading, setLoading] = useState(true);
 
+  const logout = () => {
+    setToken(null);
+    setUser(null);
+    localStorage.removeItem('jeevanvani_token');
+    localStorage.removeItem('jeevanvani_user');
+  };
+
   useEffect(() => {
     async function verifySession() {
       if (token) {
@@ -50,13 +57,6 @@ export function AuthProvider({ children }) {
       localStorage.setItem('jeevanvani_user', JSON.stringify(data.user));
     }
     return data;
-  };
-
-  const logout = () => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem('jeevanvani_token');
-    localStorage.removeItem('jeevanvani_user');
   };
 
   const isAdmin = user?.role === 'admin';

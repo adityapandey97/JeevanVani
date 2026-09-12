@@ -1,41 +1,94 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  font-family: 'Inter', 'Noto Sans Devanagari', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  color-scheme: light;
+  font-family: 'Inter', 'Noto Sans Devanagari', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color-scheme: light dark;
+
+  /* Traditional Indian-Inspired Modern Theme Tokens */
+  --primary: #C84B31;           /* Deep Terracotta / Saffron Accent */
+  --primary-light: #E05D41;
+  --primary-dark: #A73822;
+  --secondary: #1B4D3E;         /* Deep Forest Green (Harit Bharat) */
+  --secondary-light: #2D6A4F;
+  --background: #FDFBF7;        /* Warm Cream / Off-white */
+  --surface: #FFFFFF;
+  --surface-warm: #F8F4ED;
+  --text-primary: #1A202C;      /* Dark Charcoal */
+  --text-secondary: #4A5568;
+  --border: #E8DFD5;
+  --border-subtle: #F2ECE4;
+  --success: #10B981;
+  --warning: #D97706;
+  --error: #DC2626;
 }
 
 body {
   margin: 0;
   padding: 0;
-  background-color: #F8FAFC;
-  color: #0F172A;
+  background-color: var(--background);
+  color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 html.dark body {
-  background-color: #020617;
-  color: #F8FAFC;
+  background-color: #0E1318;
+  color: #F7FAFC;
+  --surface: #17202A;
+  --surface-warm: #1E293B;
+  --border: #2D3748;
+  --border-subtle: #1F2937;
+  --text-primary: #F7FAFC;
+  --text-secondary: #CBD5E1;
+}
+
+/* Subtle Indian Geometric Motif Border */
+.motif-top-border {
+  background: linear-gradient(90deg, #C84B31 0%, #D97706 35%, #1B4D3E 70%, #C84B31 100%);
+  height: 4px;
+}
+
+/* Subtle Indian Cultural Jali Accent */
+.jali-bg {
+  background-image: radial-gradient(#C84B31 0.75px, transparent 0.75px), radial-gradient(#1B4D3E 0.75px, #FDFBF7 0.75px);
+  background-size: 30px 30px;
+  background-position: 0 0, 15px 15px;
+  opacity: 0.04;
+}
+
+html.dark .jali-bg {
+  background-image: radial-gradient(#C84B31 0.75px, transparent 0.75px), radial-gradient(#1B4D3E 0.75px, #0E1318 0.75px);
+  opacity: 0.06;
+}
+
+/* Warm Card Styling */
+.card-warm {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 20px -2px rgba(200, 75, 49, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+}
+
+.card-warm:hover {
+  box-shadow: 0 10px 25px -3px rgba(200, 75, 49, 0.08), 0 4px 10px -2px rgba(0, 0, 0, 0.05);
 }
 
 /* Glassmorphism helpers */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  border: 1px solid var(--border);
 }
 
 .glass-dark {
-  background: rgba(10, 37, 64, 0.92);
+  background: rgba(23, 32, 42, 0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* Custom Scrollbar */
@@ -54,22 +107,31 @@ html.dark body {
   background: #94A3B8;
 }
 
-/* Audio visualizer animations */
+/* Voice Ripple & Audio Visualizer */
 @keyframes voice-ripple {
   0% {
     transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+    box-shadow: 0 0 0 0 rgba(200, 75, 49, 0.7);
   }
   70% {
-    transform: scale(1.05);
-    box-shadow: 0 0 0 25px rgba(245, 158, 11, 0);
+    transform: scale(1.06);
+    box-shadow: 0 0 0 24px rgba(200, 75, 49, 0);
   }
   100% {
     transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+    box-shadow: 0 0 0 0 rgba(200, 75, 49, 0);
   }
 }
 
 .animate-voice-ripple {
-  animation: voice-ripple 1.8s infinite;
+  animation: voice-ripple 1.8s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.02); }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s infinite ease-in-out;
 }

@@ -7,13 +7,15 @@ const api = axios.create({
   },
 });
 
-// Request interceptor for attaching auth token
+// Request interceptor for attaching auth token and language
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('jeevanvani_token');
+    const lang = localStorage.getItem('jeevanvani_language') || 'hi';
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    config.headers['x-language'] = lang;
     return config;
   },
   (error) => Promise.reject(error)

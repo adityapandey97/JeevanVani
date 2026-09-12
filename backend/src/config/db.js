@@ -35,6 +35,21 @@ function initSqlite() {
       .replace(/BOOLEAN/gi, 'INTEGER');
 
     sqliteDb.exec(ddl);
+
+    // Safely add any new columns to existing tables if needed
+    const safeAddColumn = (table, colDef) => {
+      try {
+        sqliteDb.exec(`ALTER TABLE ${table} ADD COLUMN ${colDef}`);
+      } catch (err) {
+        // Column already exists or table not ready, ignore
+      }
+    };
+
+    safeAddColumn('beneficiary_profiles', 'preferred_sector TEXT');
+    safeAddColumn('beneficiary_profiles', 'training_preference TEXT');
+    safeAddColumn('beneficiary_profiles', 'constraints TEXT');
+    safeAddColumn('beneficiary_profiles', 'career_goal TEXT');
+    safeAddColumn('recommendations', 'confidence_score REAL DEFAULT 85.0');
   }
   console.log(`[Database] Connected to SQLite database at ${dbPath}`);
 }

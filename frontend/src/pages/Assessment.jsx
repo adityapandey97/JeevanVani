@@ -12,11 +12,12 @@ export function Assessment() {
   const navigate = useNavigate();
 
   const [currentStep, setCurrentStep] = useState(0);
-  const [totalSteps, setTotalSteps] = useState(11);
+  const [totalSteps, setTotalSteps] = useState(15);
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [conversationHistory, setConversationHistory] = useState([]);
   const [isListening, setIsListening] = useState(false);
   const [activeSpeechDraft, setActiveSpeechDraft] = useState('');
+  const [pendingConfirmation, setPendingConfirmation] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [loadingInitial, setLoadingInitial] = useState(true);
@@ -28,7 +29,7 @@ export function Assessment() {
         const res = await assessmentService.startAssessment(false, language);
         if (res.success) {
           setCurrentStep(res.currentIndex || 0);
-          setTotalSteps(res.totalQuestions || 11);
+          setTotalSteps(res.totalQuestions || 15);
           if (res.question) {
             setCurrentQuestion(res.question);
             // Auto voice readout of initial question
@@ -44,34 +45,24 @@ export function Assessment() {
       }
     }
     initSession();
-  }, [language]);
+  }, [language, speakText]);
 
-  // Handle incoming speech from Web Speech API
-  const handleSpeechResult = (transcript, isFinal) => {
-    setActiveSpeechDraft(transcript);
-    if (isFinal && transcript.trim().length > 0) {
-      handleAnswerSubmit(transcript.trim());
-      setActiveSpeechDraft('');
-      setIsListening(false);
-    }
-  };
-
-  // Submit answer to backend and get next question
-  const handleAnswerSubmit = async (answerText) => {
-    if (!answerText.trim() || isSubmitting) return;
+  // Actual backend submission
+  const executeSubmission = async (answerText) => {
+    if (!answerText || !answerText.trim() || isSubmitting) return;
 
     setIsSubmitting(true);
     const prevQ = currentQuestion;
 
     try {
-      const res = await assessmentService.submitAnswer(currentStep, answerText, null, language);
+      const res = await assessmentService.submitAnswer(currentStep, answerText.trim(), null, language);
       if (res.success) {
         // Record in conversation history
         setConversationHistory((prev) => [
           ...prev,
           {
             questionPrompt: prevQ?.prompt || '',
-            userAnswer: answerText,
+            userAnswer: answerText.trim(),
             acknowledgement: res.acknowledgement || '',
           },
         ]);
@@ -79,10 +70,10 @@ export function Assessment() {
         if (res.isComplete) {
           setIsComplete(true);
           setCurrentQuestion(null);
-          // Speak completion
-          const completeMsg = language === 'hi'
-            ? 'आपकी आजीविका प्रोफ़ाइल तैयार है! आइए आपके लिए सर्वोत्तम अवसर देखें।'
-            : 'Your livelihood profile is ready. Let us find the best opportunities for you.';
+          const completeMsg =
+            language === 'hi'
+              ? 'आपकी आजीविका प्रोफ़ाइल तैयार है! आइए आपके लिए सर्वोत्तम अवसर देखें।'
+              : 'Your livelihood profile is ready. Let us find the best opportunities for you.';
           speakText(completeMsg);
         } else {
           setCurrentStep(res.currentIndex);
@@ -99,8 +90,94 @@ export function Assessment() {
     }
   };
 
+  // Handle incoming speech from Web Speech API with verbal confirmation support
+  const handleSpeechResult = (transcript, isFinal) => {
+    setActiveSpeechDraft(transcript);
+    if (isFinal && transcript.trim().length > 0) {
+      const clean = transcript.trim();
+      const lower = clean.toLowerCase();
+
+      // If already in confirmation mode, listen for voice confirmation
+      if (pendingConfirmation) {
+        if (
+          lower.includes('yes') ||
+          lower.includes('yeah') ||
+          lower.includes('correct') ||
+          lower.includes('haan') ||
+          lower.includes('ha') ||
+          clean.includes('हाँ') ||
+          clean.includes('हा') ||
+          clean.includes('सही')
+        ) {
+          const finalAnswer = pendingConfirmation.answer;
+          setPendingConfirmation(null);
+          setActiveSpeechDraft('');
+          setIsListening(false);
+          executeSubmission(finalAnswer);
+          return;
+        } else if (
+          lower.includes('no') ||
+          lower.includes('change') ||
+          lower.includes('nahi') ||
+          clean.includes('नहीं') ||
+          clean.includes('बदल')
+        ) {
+          setPendingConfirmation(null);
+          setActiveSpeechDraft('');
+          setIsListening(false);
+          speakText(
+            language === 'hi'
+              ? 'कृपया अपना उत्तर दोबारा बताएं।'
+              : 'Please state your answer again.'
+          );
+          return;
+        }
+      }
+
+      // Enter verbal/visual confirmation state
+      setPendingConfirmation({ answer: clean });
+      setActiveSpeechDraft('');
+      setIsListening(false);
+
+      const confirmPrompt =
+        language === 'hi'
+          ? `क्या मैंने सही समझा: "${clean}"? पुष्टि के लिए हाँ बोलें या बटन दबाएं।`
+          : `Did I understand correctly: "${clean}"? Say yes to confirm or click the button.`;
+      speakText(confirmPrompt);
+    }
+  };
+
+  // Triggered when text is submitted from chat or quick reply
+  const handleAnswerSubmit = (answerText) => {
+    if (!answerText.trim() || isSubmitting) return;
+    // Enter visual confirmation for clarity
+    setPendingConfirmation({ answer: answerText.trim() });
+  };
+
+  const handleConfirmAnswer = (answer) => {
+    setPendingConfirmation(null);
+    executeSubmission(answer);
+  };
+
+  const handleChangeAnswer = () => {
+    setPendingConfirmation(null);
+  };
+
+  const handleRepeatQuestion = () => {
+    if (currentQuestion?.prompt) {
+      speakText(currentQuestion.prompt);
+    }
+  };
+
+  const handleSkipQuestion = () => {
+    const skipText = language === 'hi' ? 'कोई विशेष बाधा नहीं (छोड़ा गया)' : 'No constraints (Skipped)';
+    setPendingConfirmation(null);
+    executeSubmission(skipText);
+  };
+
   const handleRestart = async () => {
     setLoadingInitial(true);
+    setPendingConfirmation(null);
     try {
       const res = await assessmentService.startAssessment(true, language);
       if (res.success) {
@@ -141,11 +218,11 @@ export function Assessment() {
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
               <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                {t.assessment.title}
+                {t.assessment?.title || 'Conversational AI Livelihood Assessment'}
               </h1>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-              {t.assessment.subtitle}
+              {t.assessment?.subtitle || 'Answer one question at a time using your voice or by typing.'}
             </p>
           </div>
 
@@ -165,7 +242,7 @@ export function Assessment() {
               title="Restart from Question 1"
             >
               <RotateCcw className="w-4 h-4" />
-              <span className="hidden sm:inline">{t.assessment.restartBtn}</span>
+              <span className="hidden sm:inline">{t.assessment?.restartBtn || 'Restart'}</span>
             </button>
           </div>
         </div>
@@ -182,10 +259,10 @@ export function Assessment() {
 
             <div className="max-w-xl mx-auto space-y-2">
               <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-                {t.assessment.readyTitle}
+                {t.assessment?.readyTitle || 'Your livelihood profile is ready!'}
               </h2>
               <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
-                {t.assessment.readyDesc}
+                {t.assessment?.readyDesc || 'Let us find the best opportunities for you under PM-AJAY.'}
               </p>
             </div>
 
@@ -205,7 +282,7 @@ export function Assessment() {
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-4 rounded-xl text-base font-bold text-slate-800 dark:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 shadow transition transform hover:-translate-y-0.5 active:scale-95"
               >
                 <Sparkles className="w-5 h-5 text-amber-500" />
-                <span>{t.assessment.viewRecsBtn}</span>
+                <span>{t.assessment?.viewRecsBtn || 'View Top 3 Recommendations'}</span>
                 <ArrowRight className="w-5 h-5" />
               </button>
 
@@ -214,7 +291,7 @@ export function Assessment() {
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition"
               >
                 <RotateCcw className="w-4 h-4" />
-                <span>{t.assessment.retakeAssessment}</span>
+                <span>{t.assessment?.retakeAssessment || 'Retake'}</span>
               </button>
             </div>
           </div>
@@ -229,6 +306,11 @@ export function Assessment() {
                 onAnswerSubmit={handleAnswerSubmit}
                 isSubmitting={isSubmitting}
                 activeSpeechDraft={activeSpeechDraft}
+                pendingConfirmation={pendingConfirmation}
+                onConfirmAnswer={handleConfirmAnswer}
+                onChangeAnswer={handleChangeAnswer}
+                onRepeatQuestion={handleRepeatQuestion}
+                onSkipQuestion={handleSkipQuestion}
               />
             </div>
 
@@ -237,10 +319,10 @@ export function Assessment() {
               {/* Voice Card */}
               <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm text-center">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
-                  {t.assessment.voiceInputCenter}
+                  {t.assessment?.voiceInputCenter || 'Voice Input Center'}
                 </h3>
                 <p className="text-xs text-slate-600 dark:text-slate-300 mb-2">
-                  {t.assessment.voiceHint}
+                  {t.assessment?.voiceHint || 'Tap the button and speak your answer clearly.'}
                 </p>
 
                 <VoiceControls
@@ -254,12 +336,12 @@ export function Assessment() {
               <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 dark:from-amber-950/30 dark:to-orange-950/20 rounded-2xl p-5 border border-amber-200/60 dark:border-amber-800/50 text-xs text-slate-700 dark:text-slate-300 space-y-2.5">
                 <p className="font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5 uppercase tracking-wide">
                   <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                  <span>{t.assessment.tipsHeading}</span>
+                  <span>{t.assessment?.tipsHeading || 'Helpful Guidance:'}</span>
                 </p>
                 <ul className="space-y-1.5 text-slate-600 dark:text-slate-400 pl-4 list-disc">
-                  <li>{t.assessment.tip1}</li>
-                  <li>{t.assessment.tip2}</li>
-                  <li>{t.assessment.tip3}</li>
+                  <li>{t.assessment?.tip1 || 'Answer by speaking, typing, or tapping quick options.'}</li>
+                  <li>{t.assessment?.tip2 || 'To hear the question again, tap the speaker icon.'}</li>
+                  <li>{t.assessment?.tip3 || 'Say "Yes" or tap confirm when your voice answer is transcribed.'}</li>
                 </ul>
               </div>
             </div>
@@ -271,3 +353,4 @@ export function Assessment() {
 }
 
 export default Assessment;
+

@@ -320,7 +320,7 @@ export class RecommendationService {
       );
       const roleSkills = roleSkillsRes.rows;
 
-      const interestScore = this.calculateInterestScore(userInterests, profile.preferred_location, role, profile.employment_preference);
+      const interestScore = this.calculateInterestScore(userInterests, profile.preferred_sector || profile.preferred_location, role, profile.employment_preference);
       const { score: skillScore, matchingSkills, missingSkills } = this.calculateSkillScore(userSkillNames, roleSkills);
       const eligibilityScore = this.calculateEligibilityScore(profile.education, role.required_education);
       const experienceScore = this.calculateExperienceScore(profile.work_experience);
@@ -336,6 +336,12 @@ export class RecommendationService {
       );
 
       const roundedScore = Math.min(98, Math.max(50, Math.round(finalMatchScore)));
+
+      // Confidence score computation
+      const profileCompleteness = Number(profile.profile_completion || 70);
+      const confidence = Math.min(96, Math.max(55, Math.round(
+        (roundedScore * 0.4) + (profileCompleteness * 0.4) + (skillScore >= 50 ? 20 : 10)
+      )));
 
       const whyRecommended = this.generateWhyRecommended(role, {
         interest: interestScore,
@@ -362,6 +368,7 @@ export class RecommendationService {
         training_duration: role.training_duration,
         career_path: careerPath,
         match_score: roundedScore,
+        confidence_score: confidence,
         interest_score: Math.round(interestScore),
         skill_score: Math.round(skillScore),
         eligibility_score: Math.round(eligibilityScore),
@@ -379,10 +386,10 @@ export class RecommendationService {
     await db.query('DELETE FROM recommendations WHERE user_id = $1', [userId]);
 
     for (const rec of top3) {
-      await db.query(
+      const insertRec = await db.query(
         `INSERT INTO recommendations
-         (user_id, job_role_id, match_score, interest_score, skill_score, eligibility_score, experience_score, location_score, why_recommended, matching_skills, missing_skills)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+         (user_id, job_role_id, match_score, interest_score, skill_score, eligibility_score, experience_score, location_score, confidence_score, why_recommended, matching_skills, missing_skills)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
         [
           userId,
           rec.job_role_id,
@@ -392,11 +399,22 @@ export class RecommendationService {
           rec.eligibility_score,
           rec.experience_score,
           rec.location_score,
+          rec.confidence_score,
           JSON.stringify(rec.why_recommended),
           JSON.stringify(rec.matching_skills),
           JSON.stringify(rec.missing_skills),
         ]
       );
+
+      // If low confidence (<65%), flag for human review queue
+      if (rec.confidence_score < 65) {
+        const recId = insertRec?.rows?.[0]?.id || null;
+        await db.query(
+          `INSERT INTO human_reviews (user_id, recommendation_id, confidence_score, flag_reason, status)
+           VALUES ($1, $2, $3, $4, 'pending')`,
+          [userId, recId, rec.confidence_score, 'Low skill/profile data match confidence']
+        ).catch(() => {});
+      }
     }
 
     return top3;
@@ -470,6 +488,7 @@ export class RecommendationService {
         training_duration: row.training_duration,
         career_path: careerPath,
         match_score: Number(row.match_score),
+        confidence_score: Number(row.confidence_score || 85),
         why_recommended: Array.isArray(why) ? why : [why],
         matching_skills: Array.isArray(matched) ? matched : [],
         missing_skills: Array.isArray(missing) ? missing : [],

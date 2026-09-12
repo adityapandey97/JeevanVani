@@ -2,19 +2,52 @@ import ProfileExtractionService from './profileExtractionService.js';
 
 export const ASSESSMENT_QUESTIONS = [
   {
-    id: 'age',
+    id: 'preferred_language',
     index: 0,
+    field: 'preferred_language',
+    en: "Namaste! Welcome to JeevanVaani. Which language do you prefer for our conversation and training guidance?",
+    hi: "नमस्ते! जीवनवाणी में आपका स्वागत है। आप हमारे संवाद और प्रशिक्षण मार्गदर्शन के लिए कौन सी भाषा पसंद करेंगे?",
+    quickReplies: {
+      en: ['Hindi (हिंदी)', 'English', 'Both / Bilingual'],
+      hi: ['हिंदी (Hindi)', 'English', 'दोनों (द्विभाषी)']
+    }
+  },
+  {
+    id: 'name',
+    index: 1,
+    field: 'name',
+    en: "What is your full name?",
+    hi: "कृपया अपना पूरा नाम बताएं?",
+    quickReplies: {
+      en: ['My name is on record', 'Rahul Kumar', 'Pooja Rani'],
+      hi: ['मेरा नाम दर्ज है', 'राहुल कुमार', 'पूजा रानी']
+    }
+  },
+  {
+    id: 'age',
+    index: 2,
     field: 'age',
-    en: "Welcome! To help us find the best skilling and career opportunities under PM-AJAY, could you please tell me your age?",
-    hi: "नमस्ते! PM-AJAY योजना के तहत आपके लिए सबसे उपयुक्त स्किलिंग और रोजगार के अवसर खोजने के लिए, कृपया अपनी उम्र (आयु) बताएं?",
+    en: "To recommend the best PM-AJAY skilling opportunities, could you please tell me your age?",
+    hi: "PM-AJAY योजना के तहत सबसे उपयुक्त अवसर खोजने के लिए, कृपया अपनी आयु (उम्र) बताएं?",
     quickReplies: {
       en: ['18 - 21 years', '22 - 25 years', '26 - 30 years', 'Above 30 years'],
       hi: ['18 - 21 वर्ष', '22 - 25 वर्ष', '26 - 30 वर्ष', '30 वर्ष से अधिक']
     }
   },
   {
+    id: 'preferred_location',
+    index: 3,
+    field: 'preferred_location',
+    en: "Which city, district, or home area are you currently located in or prefer to train in?",
+    hi: "वर्तमान में आप किस शहर, जिले या क्षेत्र में रहते हैं जहाँ आप प्रशिक्षण या काम करना चाहते हैं?",
+    quickReplies: {
+      en: ['Kanpur, UP', 'Lucknow, UP', 'Varanasi, UP', 'Agra, UP', 'My Home District'],
+      hi: ['कानपुर, उत्तर प्रदेश', 'लखनऊ, उत्तर प्रदेश', 'वाराणसी, उत्तर प्रदेश', 'आगरा, उत्तर प्रदेश', 'मेरा गृह जिला']
+    }
+  },
+  {
     id: 'education',
-    index: 1,
+    index: 4,
     field: 'education',
     en: "What is your highest educational qualification?",
     hi: "आपकी उच्चतम शिक्षा (पढ़ाई) कहाँ तक हुई है?",
@@ -25,18 +58,18 @@ export const ASSESSMENT_QUESTIONS = [
   },
   {
     id: 'employment_status',
-    index: 2,
+    index: 5,
     field: 'employment_status',
     en: "What is your current work or employment status right now?",
-    hi: "वर्तमान में आपकी रोजगार स्थिति क्या है? क्या आप बेरोजगार हैं, छात्र हैं, या कोई छोटा-मोटा काम कर रहे हैं?",
+    hi: "वर्तमान में आपकी रोजगार स्थिति क्या है? क्या आप बेरोजगार हैं, छात्र हैं, या दैनिक मजदूरी करते हैं?",
     quickReplies: {
-      en: ['Currently Unemployed', 'Daily Wage / Helper', 'Self-Employed / Shop', 'Student'],
-      hi: ['वर्तमान में बेरोजगार', 'दिहाड़ी मजदूरी / हेल्पर', 'स्वरोजगार / दुकान', 'छात्र']
+      en: ['Currently Unemployed', 'Daily Wage / Helper', 'Self-Employed / Small Shop', 'Student'],
+      hi: ['वर्तमान में बेरोजगार', 'दिहाड़ी मजदूरी / हेल्पर', 'स्वरोजगार / छोटी दुकान', 'छात्र / विद्यार्थी']
     }
   },
   {
     id: 'work_experience',
-    index: 3,
+    index: 6,
     field: 'work_experience',
     en: "Do you have any prior work experience? If yes, please describe what kind of work and for how long.",
     hi: "क्या आपके पास पहले किसी काम का अनुभव है? यदि हाँ, तो कृपया बताएं कि आपने किस प्रकार का काम और कितने समय किया है?",
@@ -47,42 +80,42 @@ export const ASSESSMENT_QUESTIONS = [
   },
   {
     id: 'skills',
-    index: 4,
+    index: 7,
     field: 'skills',
-    en: "What practical or technical skills do you already know? (For example: basic wiring, vehicle repair, typing, mobile repair, tailoring, farming, etc.)",
+    en: "What practical or technical skills do you already know? (e.g. basic wiring, vehicle repair, typing, tailoring, farming, etc.)",
     hi: "आप कौन से व्यावहारिक या तकनीकी कौशल पहले से जानते हैं? (जैसे: बिजली का तार जोड़ना, वाहन रिपेयर, टाइपिंग, सिलाई, खेती, आदि)",
     quickReplies: {
-      en: ['Basic Wiring & Tools', 'Computer & Typing', 'Tailoring & Stitching', 'Bike / Motor Repair', 'I am ready to learn from scratch'],
+      en: ['Basic Wiring & Tools', 'Computer & Typing', 'Tailoring & Stitching', 'Bike / Motor Repair', 'Ready to learn from scratch'],
       hi: ['बिजली का काम व टूल्स', 'कंप्यूटर व टाइपिंग', 'सिलाई व कढ़ाई', 'बाइक / मोटर मैकेनिक', 'शुरुआत से सीखने को तैयार']
     }
   },
   {
     id: 'interests',
-    index: 5,
+    index: 8,
     field: 'interests',
     en: "What kind of work or subjects are you most interested in learning or doing?",
     hi: "आपको किस प्रकार का काम सीखने या करने में सबसे अधिक रुचि है?",
     quickReplies: {
-      en: ['Electrical & Solar Energy', 'Healthcare & Patient Care', 'Computers & Office Work', 'Automobiles & Machines', 'Retail & Customer Service'],
-      hi: ['बिजली व सोलर ऊर्जा', 'स्वास्थ्य सेवा व अस्पताल', 'कंप्यूटर व ऑफिस कार्य', 'ऑटोमोबाइल व मशीनें', 'दुकान व सेल्स']
+      en: ['Electrical & Solar Energy', 'Healthcare & Patient Care', 'Computers & Digital Work', 'Automobiles & Mechanics', 'Retail & Customer Service'],
+      hi: ['बिजली व सोलर ऊर्जा', 'स्वास्थ्य सेवा व अस्पताल', 'कंप्यूटर व डिजिटल कार्य', 'ऑटोमोबाइल व मशीनें', 'दुकान व सेल्स']
     }
   },
   {
     id: 'preferred_sector',
-    index: 6,
+    index: 9,
     field: 'preferred_sector',
-    en: "Which industry sector would you prefer to work in?",
-    hi: "आप किस उद्योग या सेक्टर में काम करना पसंद करेंगे?",
+    en: "Which industry sector would you prefer for your vocational career?",
+    hi: "आप अपने करियर के लिए किस उद्योग या सेक्टर को प्राथमिकता देंगे?",
     quickReplies: {
-      en: ['Green Jobs / Solar', 'Electrical & Construction', 'IT / Digital Services', 'Healthcare', 'Automotive', 'Apparel & Handicrafts'],
+      en: ['Solar / Green Jobs', 'Construction & Electrical', 'IT / Digital Services', 'Healthcare', 'Automotive', 'Apparel & Handicrafts'],
       hi: ['सोलर व ग्रीन जॉब्स', 'इलेक्ट्रिकल व निर्माण', 'आईटी व डिजिटल सेवा', 'स्वास्थ्य सेवा (Healthcare)', 'ऑटोमोबाइल', 'कपड़ा व हस्तशिल्प']
     }
   },
   {
     id: 'employment_preference',
-    index: 7,
+    index: 10,
     field: 'employment_preference',
-    en: "What is your preference: A salaried job in a company, starting your own enterprise/shop (self-employment), or open to both?",
+    en: "What is your career preference: A salaried job in a company, starting your own enterprise (self-employment), or open to both?",
     hi: "आपकी क्या प्राथमिकता है: किसी कंपनी में वेतन वाली नौकरी, अपनी खुद की दुकान/व्यवसाय (स्वरोजगार), या दोनों?",
     quickReplies: {
       en: ['Salaried Job', 'Self-Employment / Business', 'Open to Both (Job & Business)'],
@@ -90,36 +123,47 @@ export const ASSESSMENT_QUESTIONS = [
     }
   },
   {
-    id: 'preferred_location',
-    index: 8,
-    field: 'preferred_location',
-    en: "Which city, district, or region would you prefer to work or train in?",
-    hi: "आप किस शहर, जिले या क्षेत्र में काम या प्रशिक्षण करना पसंद करेंगे?",
+    id: 'training_preference',
+    index: 11,
+    field: 'training_preference',
+    en: "What type of training schedule works best for you under PM-AJAY?",
+    hi: "PM-AJAY योजना के तहत आपके लिए किस प्रकार का प्रशिक्षण कार्यक्रम सबसे उपयुक्त रहेगा?",
     quickReplies: {
-      en: ['My Home District', 'Nearby Industrial Town / Capital City', 'Any major urban hub in my state'],
-      hi: ['मेरा गृह जिला', 'पास का औद्योगिक शहर / राजधानी', 'राज्य का कोई भी बड़ा शहर']
+      en: ['Full-Time Hands-on (3 months)', 'Part-Time / Evening Batch', 'With Daily Stipend Allowance', 'RPL Fast-Track Certification'],
+      hi: ['फुल-टाइम प्रैक्टिकल (3 महीने)', 'पार्ट-टाइम / शाम का बैच', 'दैनिक वजीफा (Stipend) सहित', 'RPL फास्ट-ट्रैक प्रमाणन']
     }
   },
   {
     id: 'willing_to_relocate',
-    index: 9,
+    index: 12,
     field: 'willing_to_relocate',
-    en: "Are you willing to relocate to another city or district if you receive higher pay and training?",
-    hi: "यदि बेहतर वेतन और प्रशिक्षण का अवसर मिले, तो क्या आप दूसरे शहर या जिले में जाने को तैयार हैं?",
+    en: "Are you willing to travel or relocate to another district/city for higher wages and placement?",
+    hi: "यदि बेहतर वेतन और नौकरी का अवसर मिले, तो क्या आप दूसरे जिले या शहर जाने को तैयार हैं?",
     quickReplies: {
       en: ['Yes, completely willing', 'No, strictly prefer near home', 'Only within my home state'],
       hi: ['हाँ, पूरी तरह तैयार हूँ', 'नहीं, केवल घर के पास', 'केवल अपने राज्य के भीतर']
     }
   },
   {
-    id: 'preferred_language',
-    index: 10,
-    field: 'preferred_language',
-    en: "Thank you! Lastly, which language do you prefer for your course materials and audio guidance?",
-    hi: "धन्यवाद! अंतिम प्रश्न, आप अपने प्रशिक्षण सामग्री और ऑडियो मार्गदर्शन के लिए कौन सी भाषा पसंद करते हैं?",
+    id: 'constraints',
+    index: 13,
+    field: 'constraints',
+    en: "Do you have any personal constraints or special considerations we should plan for? (e.g. family care, transport limitations, or none)",
+    hi: "क्या कोई व्यक्तिगत मजबूरी या परिस्थिति है जिसका हमें ध्यान रखना चाहिए? (जैसे: परिवार की देखभाल, आने-जाने की समस्या, या कोई नहीं)?",
     quickReplies: {
-      en: ['English', 'Hindi (हिंदी)', 'Both / Bilingual'],
-      hi: ['हिंदी (Hindi)', 'English', 'दोनों (द्विभाषी)']
+      en: ['No constraints (Fully available)', 'Need transport assistance', 'Need morning batch only', 'Family commitments'],
+      hi: ['कोई बाधा नहीं (पूरी तरह उपलब्ध)', 'आने-जाने के साधन की आवश्यकता', 'केवल सुबह का बैच चाहिए', 'पारिवारिक जिम्मेदारियां']
+    }
+  },
+  {
+    id: 'consent',
+    index: 14,
+    field: 'consent',
+    en: "Finally, do you consent to storing your livelihood profile under PM-AJAY GIA for certified skilling and employment matching?",
+    hi: "अंत में, क्या आप प्रमाणित कौशल और रोजगार सहायता के लिए PM-AJAY GIA योजना के तहत अपनी प्रोफ़ाइल दर्ज करने की सहमति देते हैं?",
+    quickReplies: {
+      en: ['Yes, I consent', 'I agree to PM-AJAY terms'],
+      hi: ['हाँ, मैं सहमति देता हूँ', 'मुझे PM-AJAY शर्तें स्वीकार हैं']
     }
   }
 ];
@@ -147,11 +191,29 @@ export class AIService {
     const updates = {};
     const cleanText = (answerText || '').trim();
 
-    // In-Built Natural Language Processing Pipeline
     switch (question.id) {
+      case 'preferred_language': {
+        const lower = cleanText.toLowerCase();
+        const isHindi = lower.includes('hindi') || lower.includes('हिंदी') || lower.includes('दोनों');
+        updates.preferred_language = isHindi ? 'hi' : 'en';
+        break;
+      }
+
+      case 'name': {
+        if (cleanText && !cleanText.includes('दर्ज') && !cleanText.includes('record')) {
+          updates.name = cleanText.replace(/^(my name is|मेरा नाम|नाम है)/gi, '').trim();
+        }
+        break;
+      }
+
       case 'age': {
         const age = ProfileExtractionService.extractAge(cleanText);
         if (age) updates.age = age;
+        break;
+      }
+
+      case 'preferred_location': {
+        updates.preferred_location = ProfileExtractionService.extractLocation(cleanText);
         break;
       }
 
@@ -178,7 +240,6 @@ export class AIService {
           updates.skills = matched;
           updates.extracted_skills = matched;
         } else if (cleanText.length > 2 && !cleanText.toLowerCase().includes('नहीं') && !cleanText.toLowerCase().includes('no')) {
-          // Custom skill fallback
           const custom = [{ name: cleanText, category: 'General', proficiency_level: 'Beginner' }];
           updates.skills = custom;
           updates.extracted_skills = custom;
@@ -203,8 +264,8 @@ export class AIService {
         break;
       }
 
-      case 'preferred_location': {
-        updates.preferred_location = ProfileExtractionService.extractLocation(cleanText);
+      case 'training_preference': {
+        updates.training_preference = cleanText;
         break;
       }
 
@@ -214,10 +275,13 @@ export class AIService {
         break;
       }
 
-      case 'preferred_language': {
-        const lower = cleanText.toLowerCase();
-        const isHindi = lower.includes('hindi') || lower.includes('हिंदी') || lower.includes('दोनों');
-        updates.preferred_language = isHindi ? 'hi' : 'en';
+      case 'constraints': {
+        updates.constraints = cleanText;
+        break;
+      }
+
+      case 'consent': {
+        updates.consent_granted = 1;
         break;
       }
 
@@ -242,16 +306,38 @@ export class AIService {
   static generateAcknowledgement(questionIndex, answerText, lang = 'en') {
     const acks = {
       en: [
-        "Got it, thank you for sharing that.",
-        "Understood! Let's continue to the next detail.",
-        "Very helpful information. Noting that down.",
-        "Great, saved to your PM-AJAY profile.",
+        "Language set! Let's build your profile step by step.",
+        "Noted your name. Pleasure to assist you!",
+        "Got it, recorded your age.",
+        "Saved your preferred location.",
+        "Education details saved successfully.",
+        "Noted your current work status.",
+        "Understood your work background.",
+        "Great skills! Mapped to our NSQF catalog.",
+        "Noted your career interests.",
+        "Saved your preferred sector.",
+        "Understood your employment preference.",
+        "Noted your training preferences.",
+        "Location and mobility preference saved.",
+        "Noted any personal constraints.",
+        "Thank you! Consent verified. Preparing your customized PM-AJAY skilling pathway now!"
       ],
       hi: [
-        "समझ गया, जानकारी साझा करने के लिए धन्यवाद।",
-        "बहुत बढ़िया! आइए अगले बिंदु पर चलते हैं।",
-        "यह जानकारी आपकी प्रोफ़ाइल में सुरक्षित कर ली गई है।",
-        "उत्तम! आपके लिए सही करियर चुनने में यह बहुत मददगार रहेगा।",
+        "भाषा सेट हो गई! आइए चरण दर चरण आपकी प्रोफ़ाइल बनाते हैं।",
+        "आपका नाम नोट कर लिया गया है।",
+        "आपकी आयु सुरक्षित कर ली गई है।",
+        "पसंदीदा स्थान और जिला दर्ज हो गया।",
+        "आपकी शैक्षणिक योग्यता सुरक्षित कर ली गई है।",
+        "आपकी वर्तमान रोजगार स्थिति नोट कर ली गई है।",
+        "आपका कार्य अनुभव सुरक्षित कर लिया गया है।",
+        "उत्तम कौशल! इन्हें NSQF कैटलॉग से जोड़ दिया गया है।",
+        "आपकी करियर रुचि नोट कर ली गई है।",
+        "पसंदीदा सेक्टर सुरक्षित कर लिया गया है।",
+        "आपकी रोजगार प्राथमिकता नोट कर ली गई है।",
+        "प्रशिक्षण संबंधी प्राथमिकता सुरक्षित हो गई।",
+        "यात्रा व स्थानांतरण संबंधी विकल्प दर्ज हो गया।",
+        "आपकी विशेष परिस्थितियां नोट कर ली गई हैं।",
+        "धन्यवाद! सहमति प्राप्त हुई। आपकी PM-AJAY करियर और स्किलिंग योजना तैयार की जा रही है!"
       ]
     };
 
