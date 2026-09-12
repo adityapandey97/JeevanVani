@@ -140,7 +140,7 @@ export async function submitAnswer(req, res, next) {
 
       const allSkills = await Skill.find({});
 
-      const { updates, nextQuestionIndex, isComplete } = AIService.processAnswer(
+      const { updates, nextQuestionIndex, isComplete } = await AIService.processAnswer(
         questionIndex,
         answerText,
         {},
@@ -159,7 +159,10 @@ export async function submitAnswer(req, res, next) {
       if (updates.willing_to_relocate !== undefined) profileUpdates.willing_to_relocate = updates.willing_to_relocate;
       if (updates.employment_preference !== undefined) profileUpdates.employment_preference = updates.employment_preference;
 
-      const profile = await BeneficiaryProfile.findOne({ user: userId });
+      let profile = await BeneficiaryProfile.findOne({ user: userId });
+      if (!profile) {
+        profile = await BeneficiaryProfile.create({ user: userId, profile_completion: 0 });
+      }
       if (profile) {
         Object.assign(profile, profileUpdates);
         if (updates.skills && updates.skills.length > 0) {
@@ -234,12 +237,18 @@ export async function submitAnswer(req, res, next) {
     const skillsRes = await db.query('SELECT id, name, category FROM skills');
     const allSkills = skillsRes.rows;
 
-    const { updates, nextQuestionIndex, isComplete } = AIService.processAnswer(
+    const { updates, nextQuestionIndex, isComplete } = await AIService.processAnswer(
       questionIndex,
       answerText,
       {},
       allSkills
     );
+
+    // Ensure beneficiary_profiles row exists
+    const checkProf = await db.query('SELECT id FROM beneficiary_profiles WHERE user_id = $1', [userId]);
+    if (checkProf.rows.length === 0) {
+      await db.query('INSERT INTO beneficiary_profiles (user_id, profile_completion) VALUES ($1, 0)', [userId]);
+    }
 
     const profileFields = [];
     const profileValues = [];
@@ -318,10 +327,13 @@ export async function submitAnswer(req, res, next) {
 
     if (updates.interests && updates.interests.length > 0) {
       for (const interest of updates.interests) {
-        await db.query(
-          'INSERT INTO interests (user_id, interest_name) VALUES ($1, $2)',
-          [userId, interest]
-        );
+        const exInt = await db.query('SELECT id FROM interests WHERE user_id = $1 AND interest_name = $2', [userId, interest]);
+        if (exInt.rows.length === 0) {
+          await db.query(
+            'INSERT INTO interests (user_id, interest_name) VALUES ($1, $2)',
+            [userId, interest]
+          );
+        }
       }
     }
 

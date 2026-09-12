@@ -1,21 +1,4 @@
-import dotenv from 'dotenv';
-import { GoogleGenAI } from '@google/genai';
 import ProfileExtractionService from './profileExtractionService.js';
-
-dotenv.config();
-
-// Initialize Google Gen AI client if API key is provided
-let googleGenAI = null;
-const apiKey = process.env.GEMINI_API_KEY;
-
-if (apiKey && apiKey.trim() && !apiKey.includes('your_')) {
-  try {
-    googleGenAI = new GoogleGenAI({ apiKey: apiKey.trim() });
-    console.log('[AI Service] Google Gemini Gen AI client initialized.');
-  } catch (err) {
-    console.warn('[AI Service] Failed to initialize Google Gen AI client:', err.message);
-  }
-}
 
 export const ASSESSMENT_QUESTIONS = [
   {
@@ -154,67 +137,90 @@ export class AIService {
   }
 
   /**
-   * Process a single answer and extract structured attributes
-   * Uses Gemini AI if GEMINI_API_KEY is provided, else falls back to rule-based NLP
+   * Process a single answer using in-built NLP and extract structured attributes
+   * Fully offline, deterministic, and instant processing in Hindi and English.
    */
-  static processAnswer(questionIndex, answerText, currentProfile = {}, availableSkills = []) {
+  static async processAnswer(questionIndex, answerText, currentProfile = {}, availableSkills = []) {
     const question = this.getQuestion(questionIndex);
     if (!question) return { profileUpdates: {}, nextQuestionIndex: questionIndex };
 
     const updates = {};
+    const cleanText = (answerText || '').trim();
 
+    // In-Built Natural Language Processing Pipeline
     switch (question.id) {
       case 'age': {
-        const age = ProfileExtractionService.extractAge(answerText);
+        const age = ProfileExtractionService.extractAge(cleanText);
         if (age) updates.age = age;
         break;
       }
+
       case 'education': {
-        const edu = ProfileExtractionService.extractEducation(answerText);
+        const edu = ProfileExtractionService.extractEducation(cleanText);
         if (edu) updates.education = edu;
         break;
       }
+
       case 'employment_status': {
-        const emp = ProfileExtractionService.extractEmploymentStatus(answerText);
+        const emp = ProfileExtractionService.extractEmploymentStatus(cleanText);
         if (emp) updates.employment_status = emp;
         break;
       }
+
       case 'work_experience': {
-        updates.work_experience = answerText.trim();
+        updates.work_experience = ProfileExtractionService.extractWorkExperience(cleanText);
         break;
       }
+
       case 'skills': {
-        const matched = ProfileExtractionService.matchSkills(answerText, availableSkills);
-        updates.extracted_skills = matched;
+        const matched = ProfileExtractionService.matchSkills(cleanText, availableSkills);
+        if (matched.length > 0) {
+          updates.skills = matched;
+          updates.extracted_skills = matched;
+        } else if (cleanText.length > 2 && !cleanText.toLowerCase().includes('नहीं') && !cleanText.toLowerCase().includes('no')) {
+          // Custom skill fallback
+          const custom = [{ name: cleanText, category: 'General', proficiency_level: 'Beginner' }];
+          updates.skills = custom;
+          updates.extracted_skills = custom;
+        }
         break;
       }
+
       case 'interests': {
-        updates.interest_name = answerText.trim();
+        updates.interest_name = cleanText;
+        updates.interests = [cleanText];
         break;
       }
+
       case 'preferred_sector': {
-        updates.preferred_sector = answerText.trim();
+        updates.preferred_sector = cleanText;
         break;
       }
+
       case 'employment_preference': {
-        const pref = ProfileExtractionService.extractEmploymentPreference(answerText);
+        const pref = ProfileExtractionService.extractEmploymentPreference(cleanText);
         updates.employment_preference = pref;
         break;
       }
+
       case 'preferred_location': {
-        updates.preferred_location = answerText.trim();
+        updates.preferred_location = ProfileExtractionService.extractLocation(cleanText);
         break;
       }
+
       case 'willing_to_relocate': {
-        const relocate = ProfileExtractionService.extractRelocationWillingness(answerText);
+        const relocate = ProfileExtractionService.extractRelocationWillingness(cleanText);
         updates.willing_to_relocate = relocate ? 1 : 0;
         break;
       }
+
       case 'preferred_language': {
-        const isHindi = answerText.toLowerCase().includes('hindi') || answerText.toLowerCase().includes('हिंदी');
+        const lower = cleanText.toLowerCase();
+        const isHindi = lower.includes('hindi') || lower.includes('हिंदी') || lower.includes('दोनों');
         updates.preferred_language = isHindi ? 'hi' : 'en';
         break;
       }
+
       default:
         break;
     }
@@ -232,15 +238,14 @@ export class AIService {
 
   /**
    * Generate conversational assistant confirmation message in Hindi or English
-   * Uses Gemini API dynamically if configured
    */
   static generateAcknowledgement(questionIndex, answerText, lang = 'en') {
     const acks = {
       en: [
         "Got it, thank you for sharing that.",
         "Understood! Let's continue to the next detail.",
-        "Very helpful information.",
-        "Great, noting that down for your profile.",
+        "Very helpful information. Noting that down.",
+        "Great, saved to your PM-AJAY profile.",
       ],
       hi: [
         "समझ गया, जानकारी साझा करने के लिए धन्यवाद।",

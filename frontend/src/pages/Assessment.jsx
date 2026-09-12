@@ -5,7 +5,7 @@ import assessmentService from '../services/assessmentService';
 import ProgressBar from '../components/Chat/ProgressBar';
 import AssessmentChat from '../components/Chat/AssessmentChat';
 import VoiceControls from '../components/VoiceAssistant/VoiceControls';
-import { RotateCcw, Globe, Sparkles, CheckCircle, ArrowRight } from 'lucide-react';
+import { RotateCcw, Globe, Sparkles, CheckCircle, ArrowRight, LayoutDashboard } from 'lucide-react';
 
 export function Assessment() {
   const { language, toggleLanguage, t, speakText } = useLanguage();
@@ -191,11 +191,20 @@ export function Assessment() {
 
             <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
               <button
+                id="view-dashboard-btn"
+                onClick={() => navigate('/dashboard')}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-4 rounded-xl text-base font-bold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-lg shadow-amber-500/30 transition transform hover:-translate-y-0.5 active:scale-95"
+              >
+                <LayoutDashboard className="w-5 h-5" />
+                <span>{language === 'hi' ? 'डैशबोर्ड देखें' : 'View Dashboard'}</span>
+              </button>
+
+              <button
                 id="view-recommendations-btn"
                 onClick={() => navigate('/recommendations')}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl text-base font-bold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-lg shadow-amber-500/30 transition transform hover:-translate-y-0.5 active:scale-95"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-4 rounded-xl text-base font-bold text-slate-800 dark:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 shadow transition transform hover:-translate-y-0.5 active:scale-95"
               >
-                <Sparkles className="w-5 h-5" />
+                <Sparkles className="w-5 h-5 text-amber-500" />
                 <span>{t.assessment.viewRecsBtn}</span>
                 <ArrowRight className="w-5 h-5" />
               </button>
