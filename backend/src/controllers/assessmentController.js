@@ -1,7 +1,11 @@
+import fs from 'fs';
 import db from '../config/db.js';
 import AIService, { ASSESSMENT_QUESTIONS } from '../services/aiService.js';
 import RecommendationService from '../services/recommendationService.js';
 import { User, BeneficiaryProfile, AssessmentSession, Skill } from '../models/index.js';
+import objectStore from '../services/objectStoreService.js';
+import pythonAiClient from '../services/pythonAiClient.js';
+import queueService from '../services/queueService.js';
 
 export async function startAssessment(req, res, next) {
   try {
@@ -124,8 +128,28 @@ export async function submitAnswer(req, res, next) {
     let { questionIndex, answerText } = req.body;
     const reqLang = req.body?.language || req.headers['x-language'];
 
+    // Voice Audio upload processing (Object Store + Whisper ASR)
+    let audioRecord = null;
+    if (req.file) {
+      try {
+        const fileBuffer = await fs.promises.readFile(req.file.path);
+        audioRecord = await objectStore.saveAudio(fileBuffer, req.file.originalname, {
+          userId,
+          questionIndex
+        });
+
+        // If answerText is not provided, transcribe via Whisper ASR
+        if (!answerText || !answerText.trim()) {
+          const transcription = await pythonAiClient.transcribeAudio(req.file.path, reqLang || 'hi');
+          answerText = transcription.text || '';
+        }
+      } catch (err) {
+        console.warn('[AssessmentController] Audio processing note:', err.message);
+      }
+    }
+
     if (questionIndex === undefined || answerText === undefined) {
-      return res.status(400).json({ success: false, message: 'Both questionIndex and answerText are required.' });
+      return res.status(400).json({ success: false, message: 'Both questionIndex and answerText (or audio) are required.' });
     }
 
     questionIndex = Number(questionIndex);
@@ -521,9 +545,43 @@ export async function completeAssessment(req, res, next) {
   }
 }
 
+export async function transcribeVoiceAudio(req, res, next) {
+  try {
+    const userId = req.user?.id;
+    const reqLang = req.body?.language || req.headers['x-language'] || 'hi';
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Audio file is required.' });
+    }
+
+    const fileBuffer = await fs.promises.readFile(req.file.path);
+    const audioRecord = await objectStore.saveAudio(fileBuffer, req.file.originalname, {
+      userId,
+      purpose: 'voice-transcription'
+    });
+
+    const transcription = await pythonAiClient.transcribeAudio(req.file.path, reqLang);
+
+    res.json({
+      success: true,
+      data: {
+        transcript: transcription.text,
+        language: transcription.language,
+        confidence: transcription.confidence,
+        audioKey: audioRecord.key,
+        audioUrl: audioRecord.url,
+        engine: transcription.source || transcription.engine
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export default {
   startAssessment,
   submitAnswer,
   getAssessmentStatus,
-  completeAssessment
+  completeAssessment,
+  transcribeVoiceAudio
 };

@@ -21,6 +21,7 @@ export function Assessment() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [loadingInitial, setLoadingInitial] = useState(true);
+  const latestAudioBlobRef = React.useRef(null);
 
   // Initialize or fetch current session on load / language change
   useEffect(() => {
@@ -53,9 +54,11 @@ export function Assessment() {
 
     setIsSubmitting(true);
     const prevQ = currentQuestion;
+    const audioBlob = latestAudioBlobRef.current;
+    latestAudioBlobRef.current = null;
 
     try {
-      const res = await assessmentService.submitAnswer(currentStep, answerText.trim(), null, language);
+      const res = await assessmentService.submitAnswer(currentStep, answerText.trim(), audioBlob, language);
       if (res.success) {
         // Record in conversation history
         setConversationHistory((prev) => [
@@ -329,6 +332,9 @@ export function Assessment() {
                   onSpeechResult={handleSpeechResult}
                   isListening={isListening}
                   setIsListening={setIsListening}
+                  onAudioRecorded={(blob) => {
+                    latestAudioBlobRef.current = blob;
+                  }}
                 />
               </div>
 

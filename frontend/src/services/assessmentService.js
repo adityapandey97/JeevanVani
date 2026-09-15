@@ -36,6 +36,17 @@ export const assessmentService = {
   async completeAssessment() {
     const res = await api.post('/assessment/complete');
     return res.data;
+  },
+
+  async transcribeAudio(audioBlob, language = 'hi') {
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'voice-input.webm');
+    formData.append('language', language);
+
+    const res = await api.post('/assessment/transcribe', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return res.data;
   }
 };
 

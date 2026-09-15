@@ -45,13 +45,81 @@ The platform provides a conversational AI voice counselor in **Hindi** and **Eng
 
 ---
 
+## 🏛️ System Architecture
+
+```
+                    REAL USER
+                       │
+                       ▼
+                 React + Voice
+                       │
+                       ▼
+                Node / Express
+                       │
+       ┌───────────────┼────────────────┐
+       ▼               ▼                ▼
+   PostgreSQL        Redis          Object Store
+       │               │
+       │             BullMQ
+       │               │
+       │               ▼
+       │          Python AI
+       │               │
+       │       ┌───────┼────────┐
+       │       ▼       ▼        ▼
+       │     Whisper   LLM     RAG
+       │                        │
+       │                  NSQF/RPL/
+       │                  PM-AJAY/
+       │                  Knowledge
+       │
+       ▼
+ REAL USER PROFILE
+       │
+       ▼
+ SKILL GAP ENGINE
+       │
+       ├───────────────┐
+       ▼               ▼
+ NSQF COURSE       JOB/LIVELIHOOD
+ MATCHING             MATCHING
+       │               │
+       ▼               ▼
+ VERIFIED          VERIFIED
+ COURSE            OPPORTUNITY
+       │               │
+       ▼               ▼
+ ENROLLMENT        APPLICATION
+       │               │
+       └───────┬───────┘
+               ▼
+        CAREER ROADMAP
+               │
+               ▼
+        PROGRESS TRACKING
+               │
+               ▼
+         FEEDBACK LOOP
+               │
+               ▼
+       ADMIN / ANALYTICS
+```
+
+For complete technical specifications, sequence diagrams, and module documentation, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+---
+
 ## 🛠️ Technology Stack
 
 | Layer | Technologies |
 |---|---|
-| **Frontend** | React 18, Vite, Tailwind CSS, React Router DOM v6, Axios, Lucide React, Web Speech API |
-| **Backend** | Node.js (v22+), Express.js (ES Modules), JWT Authentication, bcryptjs, Multer |
+| **Frontend** | React 18, Vite, Tailwind CSS, React Router DOM v6, Axios, Lucide React, Web Speech API, MediaRecorder |
+| **Backend Gateway** | Node.js (v22+), Express.js (ES Modules), JWT Authentication, bcryptjs, Multer |
+| **Queue & Async Worker** | Redis + BullMQ (with automatic in-memory fallback queue) |
+| **Python AI Microservice** | Python 3.13, FastAPI, Uvicorn, Whisper ASR (Bilingual hi/en), LLM Profiling, Grounded RAG |
+| **Knowledge Engine** | NSQF Qualification Packs, RPL Guidelines, PM-AJAY GIA Rules, NSFDC/Mudra Credit Linkages |
 | **Database** | PostgreSQL (`pg` pool) with automatic zero-config fallback to SQLite (`better-sqlite3`) |
+| **Object Store** | Object Store Service (Local file tree / Cloud S3 bucket adapter for voice audio & resumes) |
 | **Styling** | Government / Social-Impact design system (Ashoka Navy `#0A2540`, Saffron/Marigold `#F59E0B`, Emerald `#10B981`) |
 
 ---
@@ -64,56 +132,38 @@ jeevanVani/
 │   ├── src/
 │   │   ├── config/
 │   │   │   ├── db.js                     # Unified PostgreSQL / SQLite auto-fallback connector
+│   │   │   ├── redis.js                  # Redis client with zero-config fallback
 │   │   │   └── schema.sql                # PostgreSQL DDL schema (pgvector ready)
 │   │   ├── controllers/
-│   │   │   ├── authController.js         # Register, Login, Me
-│   │   │   ├── assessmentController.js   # 11-step assessment handler & progressive updates
-│   │   │   ├── profileController.js      # Livelihood profile & skills
-│   │   │   ├── recommendationController.js # 5-factor scoring engine dispatch
-│   │   │   ├── jobRoleController.js      # NSQF job role catalog
-│   │   │   └── adminController.js        # Admin metrics, analytics & role CRUD
-│   │   ├── middleware/
-│   │   │   ├── authMiddleware.js         # JWT verification & admin guard
-│   │   │   └── errorMiddleware.js        # Centralized error handler
 │   │   ├── services/
-│   │   │   ├── aiService.js              # Conversational questions & acknowledgements
-│   │   │   ├── voiceService.js           # Audio handling & speech config
-│   │   │   ├── profileExtractionService.js # Natural language entity extraction
-│   │   │   └── recommendationService.js  # Deterministic 5-factor scoring engine
-│   │   ├── data/
-│   │   │   └── seedData.js               # 11 NSQF job roles, 37 skills, demo accounts
-│   │   ├── utils/
-│   │   │   └── seedRunner.js             # Seed execution utility
+│   │   │   ├── objectStoreService.js     # Unified audio & file object storage
+│   │   │   ├── queueService.js           # BullMQ + in-memory queue manager
+│   │   │   ├── pythonAiClient.js         # HTTP client to Python AI microservice
+│   │   │   ├── aiService.js              # Assessment flow & questions
+│   │   │   ├── recommendationService.js  # 5-factor scoring engine
+│   │   │   └── ragService.js             # Grounded RAG knowledge retriever
 │   │   └── server.js                     # Express server entry point
-│   ├── .env.example
 │   └── package.json
 │
-└── frontend/
-    ├── src/
-    │   ├── components/
-    │   │   ├── common/                   # Navbar, Footer, AudioWaveform, ProtectedRoute
-    │   │   ├── VoiceAssistant/           # VoiceControls, TextToSpeechPlayer
-    │   │   ├── Chat/                     # AssessmentChat, ProgressBar
-    │   │   ├── Recommendation/           # RecommendationCard, SkillGapList
-    │   │   └── Dashboard/                # MetricCard, CareerTimeline
-    │   ├── context/
-    │   │   ├── AuthContext.jsx           # User state & JWT persistence
-    │   │   └── LanguageContext.jsx       # Bilingual dictionary & SpeechSynthesis
-    │   ├── pages/
-    │   │   ├── LandingPage.jsx           # Hero, workflow & voice demo
-    │   │   ├── Login.jsx                 # Quick demo credential sign-in
-    │   │   ├── Register.jsx              # Beneficiary registration
-    │   │   ├── Assessment.jsx            # Conversational voice counselor
-    │   │   ├── Recommendations.jsx       # Top 3 NSQF recommendation cards
-    │   │   ├── CareerPath.jsx            # Multi-stage career progression ladder
-    │   │   ├── Dashboard.jsx             # Beneficiary dashboard
-    │   │   └── AdminDashboard.jsx        # Admin metrics & NSQF catalog CRUD
-    │   ├── services/                     # Axios API clients
-    │   ├── App.jsx                       # Routes configuration
-    │   └── main.jsx
-    ├── tailwind.config.js
-    ├── vite.config.js
-    └── package.json
+├── python-ai/                            # Python AI Microservice (Port 8000)
+│   ├── main.py                           # FastAPI application endpoints
+│   ├── worker.py                         # BullMQ / Redis background worker
+│   ├── services/
+│   │   ├── whisper_service.py            # Bilingual Whisper Speech-to-Text
+│   │   ├── llm_service.py                # Conversational entity extraction
+│   │   ├── rag_service.py                # Grounded knowledge retrieval
+│   │   └── skill_gap_service.py          # NSQF competency delta analysis
+│   └── requirements.txt
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/VoiceAssistant/    # VoiceControls with MediaRecorder & SpeechSynthesis
+│   │   ├── pages/                        # Assessment, Recommendations, Courses, Jobs, Roadmap
+│   │   └── services/                     # Axios API clients
+│   └── package.json
+│
+└── docs/
+    └── ARCHITECTURE.md                   # Comprehensive architectural specification
 ```
 
 ---
@@ -123,8 +173,17 @@ jeevanVani/
 ### 1. Prerequisites
 - **Node.js**: v18 or higher (v22+ tested)
 - **NPM**: v9 or higher
+- **Python**: v3.10+ (for Python AI microservice)
 
-### 2. Backend Setup
+### 2. Python AI Microservice (Port 8000)
+```bash
+cd python-ai
+python -m pip install -r requirements.txt
+python -m uvicorn main:app --host 127.0.0.1 --port 8000
+```
+*(Optional: If not started, Node.js backend automatically falls back to internal vernacular NLP & RAG engines)*
+
+### 3. Backend Setup
 ```bash
 cd backend
 npm install
@@ -132,7 +191,7 @@ npm run seed     # (Optional: seeds automatically on first server start)
 npm run dev      # Starts backend on http://localhost:5000
 ```
 
-### 3. Frontend Setup
+### 4. Frontend Setup
 In a new terminal window:
 ```bash
 cd frontend

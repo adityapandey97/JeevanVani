@@ -17,6 +17,9 @@ import feedbackRoutes from './routes/feedbackRoutes.js';
 import { notFoundHandler, errorHandler } from './middleware/errorMiddleware.js';
 import seedDatabase from './utils/seedRunner.js';
 import db from './config/db.js';
+import { initRedis, checkRedisHealth } from './config/redis.js';
+import queueService from './services/queueService.js';
+import objectStore from './services/objectStoreService.js';
 
 dotenv.config();
 
@@ -41,13 +44,20 @@ app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
 
 // Health check endpoint
-app.get(['/api/health', '/api/v1/health'], (req, res) => {
+app.get(['/api/health', '/api/v1/health'], async (req, res) => {
+  const redisHealth = await checkRedisHealth();
+  const queueMetrics = await queueService.getMetrics();
+  const storageHealth = objectStore.getHealth();
+
   res.json({
     status: 'healthy',
     project: 'JeevanVani - PM-AJAY GIA AI Livelihood & Skilling Platform',
     version: '2.0.0',
     timestamp: new Date().toISOString(),
-    driver: db.getDriver()
+    driver: db.getDriver(),
+    redis: redisHealth,
+    queue: queueMetrics,
+    objectStore: storageHealth
   });
 });
 
@@ -84,6 +94,10 @@ app.use(errorHandler);
 // Auto-seed and start server
 async function startServer() {
   try {
+    // Initialize Redis and asynchronous queue subsystem
+    initRedis();
+    await queueService.init();
+
     // Check if initial roles exist, else seed
     const checkRoles = await db.query('SELECT COUNT(*) as count FROM job_roles');
     if (Number(checkRoles.rows[0]?.count || 0) === 0) {

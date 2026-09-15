@@ -3,7 +3,7 @@ import { Mic, MicOff, AlertCircle, Check } from 'lucide-react';
 import AudioWaveform from '../common/AudioWaveform';
 import { useLanguage } from '../../context/LanguageContext';
 
-export function VoiceControls({ onSpeechResult, isListening, setIsListening }) {
+export function VoiceControls({ onSpeechResult, isListening, setIsListening, onAudioRecorded }) {
   const { language } = useLanguage();
   const [errorMsg, setErrorMsg] = useState(null);
   const [volumeLevel, setVolumeLevel] = useState(0);
@@ -12,14 +12,21 @@ export function VoiceControls({ onSpeechResult, isListening, setIsListening }) {
   const recognitionRef = useRef(null);
   const audioContextRef = useRef(null);
   const mediaStreamRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const recordedChunksRef = useRef([]);
   const silenceTimerRef = useRef(null);
   const onSpeechResultRef = useRef(onSpeechResult);
+  const onAudioRecordedRef = useRef(onAudioRecorded);
   const isListeningRef = useRef(isListening);
 
   // Keep callback refs updated without re-running effects
   useEffect(() => {
     onSpeechResultRef.current = onSpeechResult;
   }, [onSpeechResult]);
+
+  useEffect(() => {
+    onAudioRecordedRef.current = onAudioRecorded;
+  }, [onAudioRecorded]);
 
   useEffect(() => {
     isListeningRef.current = isListening;
@@ -34,6 +41,12 @@ export function VoiceControls({ onSpeechResult, isListening, setIsListening }) {
         recognitionRef.current.abort();
       } catch {}
       recognitionRef.current = null;
+    }
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      try {
+        mediaRecorderRef.current.stop();
+      } catch {}
+      mediaRecorderRef.current = null;
     }
     if (mediaStreamRef.current) {
       mediaStreamRef.current.getTracks().forEach((track) => track.stop());
@@ -124,6 +137,29 @@ export function VoiceControls({ onSpeechResult, isListening, setIsListening }) {
     // First ensure real microphone permission is granted
     const micGranted = await startAudioVisualizer();
     if (!micGranted) return;
+
+    // Start background MediaRecorder to capture audio blob for Whisper ASR
+    if (window.MediaRecorder && mediaStreamRef.current) {
+      try {
+        recordedChunksRef.current = [];
+        const recorder = new MediaRecorder(mediaStreamRef.current);
+        mediaRecorderRef.current = recorder;
+        recorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) {
+            recordedChunksRef.current.push(e.data);
+          }
+        };
+        recorder.onstop = () => {
+          if (recordedChunksRef.current.length > 0 && onAudioRecordedRef.current) {
+            const blob = new Blob(recordedChunksRef.current, { type: 'audio/webm' });
+            onAudioRecordedRef.current(blob);
+          }
+        };
+        recorder.start(200);
+      } catch (err) {
+        console.warn('[MediaRecorder notice]', err);
+      }
+    }
 
     try {
       const recognition = new SpeechRecognition();
