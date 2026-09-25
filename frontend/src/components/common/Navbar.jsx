@@ -18,7 +18,9 @@ import {
   Moon,
   Sparkles,
   BookOpen,
-  Briefcase
+  Briefcase,
+  User,
+  Settings
 } from 'lucide-react';
 
 
@@ -38,12 +40,15 @@ export function Navbar({ isDemoActive, onToggleDemo }) {
   const navLinks = [
     { name: t('nav.home', 'Home'), path: '/', icon: Compass },
     { name: t('nav.dashboard', 'My Dashboard'), path: '/dashboard', icon: LayoutDashboard, authOnly: true },
+    { name: t('nav.profile', 'Profile'), path: '/profile', icon: User, authOnly: true },
     { name: t('nav.assessment', 'Voice Assessment'), path: '/assessment', icon: Mic, highlight: true },
     { name: t('nav.skillGap', 'Skill Gaps'), path: '/skill-gap', icon: Award, authOnly: true },
     { name: t('nav.courses', 'Courses'), path: '/courses', icon: BookOpen },
     { name: t('nav.jobs', 'Jobs'), path: '/jobs', icon: Briefcase },
+    { name: t('nav.applications', 'My Applications'), path: '/applications', icon: Briefcase, authOnly: true },
     { name: t('nav.roadmap', 'Career Roadmap'), path: '/roadmap', icon: TrendingUp, authOnly: true },
     { name: t('nav.careerPath', 'Career Ladder'), path: '/career-path', icon: TrendingUp },
+    { name: t('nav.settings', 'Settings'), path: '/settings', icon: Settings, authOnly: true },
   ];
 
   return (

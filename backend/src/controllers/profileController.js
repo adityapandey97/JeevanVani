@@ -1,6 +1,7 @@
 import db from '../config/db.js';
 import { User, BeneficiaryProfile, Skill, AssessmentSession } from '../models/index.js';
 import AIService from '../services/aiService.js';
+import ProfileExtractionService from '../services/profileExtractionService.js';
 
 /**
  * Helper to sync answers from assessment session so text answers immediately populate
@@ -504,8 +505,83 @@ export async function getProfileSkills(req, res, next) {
   }
 }
 
+export async function deleteProfile(req, res, next) {
+  try {
+    const userId = req.user.id;
+
+    if (db.getDriver() === 'mongodb') {
+      await User.findByIdAndDelete(userId);
+      await BeneficiaryProfile.deleteOne({ user: userId });
+      await AssessmentSession.deleteMany({ user: userId });
+      await Recommendation.deleteMany({ user: userId });
+      return res.json({
+        success: true,
+        message: 'Beneficiary account and profile data successfully removed in compliance with data privacy regulations.'
+      });
+    }
+
+    // SQL Mode (Cascades ON DELETE CASCADE)
+    await db.query('DELETE FROM users WHERE id = $1', [userId]);
+    res.json({
+      success: true,
+      message: 'Beneficiary account and profile data successfully removed in compliance with data privacy regulations.'
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function extractProfile(req, res, next) {
+  try {
+    const { text, language = 'hi' } = req.body;
+    if (!text || !text.trim()) {
+      return res.status(400).json({ success: false, message: 'Text transcript is required for profile extraction.' });
+    }
+
+    const allSkillsRes = await db.query('SELECT name, category FROM skills');
+    const availableSkills = allSkillsRes.rows || [];
+
+    const clean = ProfileExtractionService.preprocessSelfCorrection(text);
+    const education = ProfileExtractionService.extractFieldWithConfidence('education', clean);
+    const age = ProfileExtractionService.extractFieldWithConfidence('age', clean);
+    const employmentStatus = ProfileExtractionService.extractFieldWithConfidence('employment_status', clean);
+    const location = ProfileExtractionService.extractFieldWithConfidence('preferred_location', clean);
+    const skills = ProfileExtractionService.extractFieldWithConfidence('skills', clean, availableSkills);
+    const willingToRelocate = ProfileExtractionService.extractFieldWithConfidence('willing_to_relocate', clean);
+
+    const overallConfidence = Math.round(
+      ((education.confidence + employmentStatus.confidence + location.confidence + skills.confidence) / 4) * 100
+    ) / 100;
+
+    res.json({
+      success: true,
+      extracted: {
+        education: education.value,
+        age: age.value,
+        skills: skills.value,
+        employmentStatus: employmentStatus.value,
+        preferredLocation: location.value,
+        willingToRelocate: willingToRelocate.value,
+        rawUtterance: text,
+        overallConfidence,
+        fieldConfidence: {
+          education,
+          age,
+          employmentStatus,
+          location,
+          skills
+        }
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export default {
   getProfile,
   updateProfile,
   getProfileSkills,
+  deleteProfile,
+  extractProfile
 };

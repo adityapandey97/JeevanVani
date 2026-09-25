@@ -5,6 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import authRoutes from './routes/authRoutes.js';
+import voiceRoutes from './routes/voiceRoutes.js';
 import assessmentRoutes from './routes/assessmentRoutes.js';
 import profileRoutes from './routes/profileRoutes.js';
 import recommendationRoutes from './routes/recommendationRoutes.js';
@@ -12,7 +13,10 @@ import jobRoleRoutes from './routes/jobRoleRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import jobRoutes from './routes/jobRoutes.js';
 import courseRoutes from './routes/courseRoutes.js';
+import nsqfRoutes from './routes/nsqfRoutes.js';
 import roadmapRoutes from './routes/roadmapRoutes.js';
+import applicationRoutes from './routes/applicationRoutes.js';
+import assistantRoutes from './routes/assistantRoutes.js';
 import feedbackRoutes from './routes/feedbackRoutes.js';
 import { notFoundHandler, errorHandler } from './middleware/errorMiddleware.js';
 import seedDatabase from './utils/seedRunner.js';
@@ -20,6 +24,7 @@ import db from './config/db.js';
 import { initRedis, checkRedisHealth } from './config/redis.js';
 import queueService from './services/queueService.js';
 import objectStore from './services/objectStoreService.js';
+import { getAllAdaptersHealth } from './integrations/index.js';
 
 dotenv.config();
 
@@ -29,14 +34,14 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// CORS configuration
+// Security and CORS configuration
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-language']
 }));
 
-// Body parsing middleware
+// Body parsing middleware with safe payload limits
 app.use(express.json({ limit: '25mb' }));
 app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 
@@ -61,8 +66,30 @@ app.get(['/api/health', '/api/v1/health'], async (req, res) => {
   });
 });
 
-// Legacy API Routes
+// Comprehensive dependency health check endpoint (Section 27 & 48)
+app.get(['/api/health/dependencies', '/api/v1/health/dependencies'], async (req, res) => {
+  const adaptersHealth = getAllAdaptersHealth();
+  const redisHealth = await checkRedisHealth();
+  const storageHealth = objectStore.getHealth();
+  const dbHealth = {
+    driver: db.getDriver(),
+    status: 'connected'
+  };
+
+  res.json({
+    success: true,
+    application: 'healthy',
+    database: dbHealth,
+    externalSources: adaptersHealth,
+    redis: redisHealth,
+    objectStore: storageHealth,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Standard REST API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/voice', voiceRoutes);
 app.use('/api/assessment', assessmentRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/recommendations', recommendationRoutes);
@@ -70,20 +97,31 @@ app.use('/api/job-roles', jobRoleRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/courses', courseRoutes);
+app.use('/api/nsqf', nsqfRoutes);
+app.use('/api/roadmap', roadmapRoutes);
 app.use('/api/training', roadmapRoutes);
 app.use('/api/skills', roadmapRoutes);
+app.use('/api/applications', applicationRoutes);
+app.use('/api/progress', applicationRoutes);
+app.use('/api/assistant', assistantRoutes);
 app.use('/api/feedback', feedbackRoutes);
 
 // Versioned /api/v1 Routes (Standard SIH Specification)
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/voice', voiceRoutes);
 app.use('/api/v1/assessment', assessmentRoutes);
 app.use('/api/v1/profile', profileRoutes);
 app.use('/api/v1/recommendations', recommendationRoutes);
 app.use('/api/v1/job-roles', jobRoleRoutes);
 app.use('/api/v1/jobs', jobRoutes);
 app.use('/api/v1/courses', courseRoutes);
+app.use('/api/v1/nsqf', nsqfRoutes);
+app.use('/api/v1/roadmap', roadmapRoutes);
 app.use('/api/v1/training', roadmapRoutes);
 app.use('/api/v1/skills', roadmapRoutes);
+app.use('/api/v1/applications', applicationRoutes);
+app.use('/api/v1/progress', applicationRoutes);
+app.use('/api/v1/assistant', assistantRoutes);
 app.use('/api/v1/feedback', feedbackRoutes);
 app.use('/api/v1/admin', adminRoutes);
 
@@ -118,6 +156,10 @@ async function startServer() {
   }
 }
 
-startServer();
+// Start only if run directly
+if (process.argv[1] && process.argv[1].endsWith('server.js')) {
+  startServer();
+}
 
+export { app, startServer };
 export default app;

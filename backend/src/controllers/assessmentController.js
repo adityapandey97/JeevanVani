@@ -305,6 +305,7 @@ export async function submitAnswer(req, res, next) {
     if (updates.employment_preference !== undefined) {
       profileFields.push(`employment_preference = $${paramCounter++}`);
       profileValues.push(updates.employment_preference);
+    }
     if (updates.name) {
       await db.query('UPDATE users SET name = $1 WHERE id = $2', [updates.name, userId]).catch(() => {});
     }

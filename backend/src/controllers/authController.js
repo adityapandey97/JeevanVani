@@ -278,8 +278,16 @@ export async function getMe(req, res, next) {
   }
 }
 
+export async function logout(req, res) {
+  res.json({
+    success: true,
+    message: 'Logged out successfully.'
+  });
+}
+
 export default {
   register,
   login,
+  logout,
   getMe,
 };

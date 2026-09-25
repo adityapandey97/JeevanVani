@@ -6,11 +6,26 @@
 
 export class ProfileExtractionService {
   /**
+   * Preprocess text for user self-corrections (e.g. "12th... actually graduation", "नहीं बल्कि 22 साल")
+   * Isolates the corrected utterance when a beneficiary changes their mind.
+   */
+  static preprocessSelfCorrection(text) {
+    if (!text) return '';
+    const clean = text.trim();
+    const correctionRegex = /(?:actually|no wait|i mean|rather|instead of that|corrected to|nah wait|नहीं बल्कि|माफ (?:कीजिए|करना)|सॉरी|असल में|दरअसल|नहीं नहीं|नहीं)[,\s.]+(.*)$/i;
+    const match = clean.match(correctionRegex);
+    if (match && match[1] && match[1].trim().length > 0) {
+      return match[1].trim();
+    }
+    return clean;
+  }
+
+  /**
    * Extract age from text (supports digits, Hindi written numbers, English written numbers)
    */
   static extractAge(text) {
     if (!text) return null;
-    const clean = text.trim();
+    const clean = this.preprocessSelfCorrection(text);
 
     // 1. Direct digit matching: 16 to 75
     const digitMatch = clean.match(/\b(1[6-9]|[2-6][0-9]|7[0-5])\b/);
@@ -57,7 +72,8 @@ export class ProfileExtractionService {
    */
   static extractEducation(text) {
     if (!text) return null;
-    const lower = text.toLowerCase().trim();
+    const clean = this.preprocessSelfCorrection(text);
+    const lower = clean.toLowerCase().trim();
 
     // Guard against age utterances mistakenly sent
     if (lower.includes('आयु') || lower.includes('उम्र') || lower.includes('साल का')) {
@@ -68,6 +84,8 @@ export class ProfileExtractionService {
 
     if (
       lower.includes('graduate') ||
+      lower.includes('graduation') ||
+      lower.includes('graduat') ||
       lower.includes('degree') ||
       lower.includes('bachelor') ||
       lower.includes('post graduate') ||
@@ -599,6 +617,123 @@ export class ProfileExtractionService {
     }
 
     return Array.from(matchedMap.values());
+  }
+
+  /**
+   * Evaluates AI confidence for an extracted attribute (Section 10)
+   * Flags low confidence (< 0.70) with actionable clarification prompt
+   */
+  static extractFieldWithConfidence(fieldName, rawText, availableSkills = []) {
+    if (!rawText || !rawText.trim()) {
+      return {
+        value: null,
+        confidence: 0,
+        source: 'manual_input',
+        needsConfirmation: false,
+        clarificationPrompt: null
+      };
+    }
+
+    const clean = this.preprocessSelfCorrection(rawText);
+    let value = null;
+    let confidence = 0.85;
+
+    switch (fieldName) {
+      case 'age': {
+        value = this.extractAge(clean);
+        confidence = value ? 0.95 : 0.40;
+        break;
+      }
+      case 'education': {
+        value = this.extractEducation(clean);
+        const knownEdu = ['Graduate', 'Diploma', 'ITI', '12th Pass', '10th Pass', '8th Pass', '5th Pass', 'Below 5th Pass'];
+        confidence = knownEdu.includes(value) ? 0.92 : 0.60;
+        break;
+      }
+      case 'employment_status': {
+        value = this.extractEmploymentStatus(clean);
+        confidence = 0.90;
+        break;
+      }
+      case 'skills': {
+        const matched = this.matchSkills(clean, availableSkills);
+        if (matched.length > 0) {
+          value = matched;
+          confidence = 0.88;
+        } else {
+          value = [{ name: clean, category: 'General', proficiency_level: 'Beginner' }];
+          confidence = 0.65;
+        }
+        break;
+      }
+      case 'preferred_location': {
+        value = this.extractLocation(clean);
+        confidence = 0.85;
+        break;
+      }
+      case 'willing_to_relocate': {
+        value = this.extractRelocationWillingness(clean);
+        confidence = 0.90;
+        break;
+      }
+      default:
+        value = clean;
+        confidence = 0.80;
+        break;
+    }
+
+    const needsConfirmation = confidence < 0.70;
+    let clarificationPrompt = null;
+    if (needsConfirmation) {
+      clarificationPrompt = `Your response for ${fieldName} was somewhat unclear ("${rawText}"). Please confirm if this is correct or select from standard options.`;
+    }
+
+    return {
+      value,
+      confidence: Math.round(confidence * 100) / 100,
+      source: 'voice_onboarding',
+      needsConfirmation,
+      clarificationPrompt
+    };
+  }
+
+  /**
+   * Calculate exact profile completeness percentage & identify missing fields
+   */
+  static calculateCompleteness(profile = {}, skills = [], interests = []) {
+    const requiredChecks = [
+      { field: 'education', valid: Boolean(profile.education && profile.education.trim()), weight: 15 },
+      { field: 'skills', valid: Array.isArray(skills) && skills.length > 0, weight: 20 },
+      { field: 'preferred_location', valid: Boolean(profile.preferred_location && profile.preferred_location.trim()), weight: 10 },
+      { field: 'age', valid: Boolean(profile.age && Number(profile.age) > 0), weight: 10 },
+      { field: 'employment_status', valid: Boolean(profile.employment_status && profile.employment_status.trim()), weight: 10 },
+      { field: 'work_experience', valid: Boolean(profile.work_experience && profile.work_experience.trim()), weight: 10 },
+      { field: 'interests', valid: (Array.isArray(interests) && interests.length > 0) || Boolean(profile.preferred_sector), weight: 10 },
+      { field: 'training_preference', valid: Boolean(profile.training_preference && profile.training_preference.trim()), weight: 5 },
+      { field: 'employment_preference', valid: Boolean(profile.employment_preference && profile.employment_preference.trim()), weight: 5 },
+      { field: 'consent', valid: true, weight: 5 }
+    ];
+
+    let totalScore = 0;
+    const missingFields = [];
+    const completedFields = [];
+
+    for (const check of requiredChecks) {
+      if (check.valid) {
+        totalScore += check.weight;
+        completedFields.push(check.field);
+      } else {
+        missingFields.push(check.field);
+      }
+    }
+
+    const percent = Math.min(100, Math.round(totalScore));
+    return {
+      percent,
+      missingFields,
+      completedFields,
+      isComplete: percent >= 85
+    };
   }
 }
 

@@ -9,6 +9,7 @@ import Footer from './components/common/Footer';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import DemoBanner from './components/common/DemoBanner';
 import OfflineBanner from './components/common/OfflineBanner';
+import AIAssistantWidget from './components/common/AIAssistantWidget';
 
 import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
@@ -17,11 +18,15 @@ import Assessment from './pages/Assessment';
 import Recommendations from './pages/Recommendations';
 import CareerPath from './pages/CareerPath';
 import Dashboard from './pages/Dashboard';
+import ProfilePage from './pages/ProfilePage';
+import ApplicationsPage from './pages/ApplicationsPage';
+import SettingsPage from './pages/SettingsPage';
 import AdminDashboard from './pages/AdminDashboard';
 import Jobs from './pages/Jobs';
 import Courses from './pages/Courses';
 import SkillGap from './pages/SkillGap';
 import Roadmap from './pages/Roadmap';
+import NotFoundPage from './pages/NotFoundPage';
 
 export function App() {
   const [isDemoActive, setIsDemoActive] = useState(() => {
@@ -37,7 +42,6 @@ export function App() {
 
   const handleSelectPersona = (personaKey) => {
     setSelectedPersona(personaKey);
-    // When persona is selected, auto-seed persona demo details into session
     if (personaKey === 'rahul') {
       const rahulDemo = {
         name: 'Rahul Kumar',
@@ -101,6 +105,30 @@ export function App() {
                     }
                   />
                   <Route
+                    path="/profile"
+                    element={
+                      <ProtectedRoute>
+                        <ProfilePage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/applications"
+                    element={
+                      <ProtectedRoute>
+                        <ApplicationsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/settings"
+                    element={
+                      <ProtectedRoute>
+                        <SettingsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
                     path="/skill-gap"
                     element={
                       <ProtectedRoute>
@@ -127,10 +155,13 @@ export function App() {
                     }
                   />
 
-                  {/* Fallback */}
-                  <Route path="*" element={<Navigate to="/" replace />} />
+                  {/* 404 Not Found Fallback */}
+                  <Route path="*" element={<NotFoundPage />} />
                 </Routes>
               </main>
+
+              {/* Interactive Grounded Career Assistant Widget */}
+              <AIAssistantWidget />
 
               <Footer />
             </div>

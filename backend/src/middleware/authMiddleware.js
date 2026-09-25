@@ -25,7 +25,10 @@ export function requireAdmin(req, res, next) {
   next();
 }
 
+export const authenticateToken = authenticate;
+
 export default {
   authenticate,
+  authenticateToken,
   requireAdmin
 };

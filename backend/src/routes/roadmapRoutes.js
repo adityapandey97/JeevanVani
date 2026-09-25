@@ -4,6 +4,7 @@ import { authenticateToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
+router.get('/', authenticateToken, getCareerRoadmap);
 router.get('/roadmap', authenticateToken, getCareerRoadmap);
 router.get('/gaps', authenticateToken, getSkillGaps);
 
