@@ -244,5 +244,16 @@
     "createAccountBtn": "Create Beneficiary Account",
     "creatingAccount": "Creating Account...",
     "alreadyAccount": "Already have an account?"
+  },
+  "footer": {
+    "brandDesc": "JeevanVaani is an AI-driven, voice-first vocational guidance and NSQF-aligned skilling recommendation platform for SC beneficiaries under the GIA component of PM-AJAY.",
+    "ministry": "Ministry of Social Justice & Empowerment, Govt. of India",
+    "sectorsTitle": "Key NSQF Sectors",
+    "supportTitle": "Helpline & Beneficiary Support",
+    "tollFreeText": "National PM-AJAY & Skilling Helpline (Toll-Free):",
+    "tollFreeNum": "1800-11-0031 / 14449",
+    "hours": "Mon - Sat: 9:00 AM - 6:00 PM IST",
+    "rights": "© 2026 JeevanVaani (UnicodeX). All rights reserved. SIH26097.",
+    "accessibilityNote": "Voice-enabled accessibility for inclusive governance."
   }
 }

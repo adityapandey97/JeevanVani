@@ -14,6 +14,25 @@ export function Footer() {
     'Apparel & Handicrafts (Self-Employment)'
   ];
 
+  // Defensive fallback for footer translations
+  const footer = t?.footer || {
+    brandDesc: language === 'hi' 
+      ? 'जीवनवाणी पीएम-अजय (GIA घटक) के अंतर्गत अनुसूचित जाति (SC) लाभार्थियों के लिए एआई-संचालित, आवाज-सक्षम व्यावसायिक मार्गदर्शन और NSQF-संरेखित कौशल सिफारिश मंच है।'
+      : 'JeevanVaani is an AI-driven, voice-first vocational guidance and NSQF-aligned skilling recommendation platform for SC beneficiaries under the GIA component of PM-AJAY.',
+    ministry: language === 'hi'
+      ? 'सामाजिक न्याय और अधिकारिता मंत्रालय, भारत सरकार'
+      : 'Ministry of Social Justice & Empowerment, Govt. of India',
+    sectorsTitle: language === 'hi' ? 'प्रमुख NSQF क्षेत्र' : 'Key NSQF Sectors',
+    supportTitle: language === 'hi' ? 'हेल्पलाइन व सहायता' : 'Helpline & Beneficiary Support',
+    tollFreeText: language === 'hi' 
+      ? 'राष्ट्रीय पीएम-अजय व कौशल हेल्पलाइन (टोल-फ्री):'
+      : 'National PM-AJAY & Skilling Helpline (Toll-Free):',
+    tollFreeNum: '1800-11-0031 / 14449',
+    hours: language === 'hi' ? 'सोम - शनि: प्रातः 9:00 से सायं 6:00 बजे' : 'Mon - Sat: 9:00 AM - 6:00 PM IST',
+    rights: '© 2026 JeevanVaani (UnicodeX). All rights reserved. SIH26097.',
+    accessibilityNote: language === 'hi' ? 'समावेशी शासन के लिए आवाज-सक्षम सुगमता।' : 'Voice-enabled accessibility for inclusive governance.'
+  };
+
   return (
     <footer className="bg-slate-900 text-slate-400 border-t border-slate-800 text-sm">
       {/* Upper Footer */}
@@ -30,22 +49,22 @@ export function Footer() {
               </h3>
             </div>
             <p className="text-slate-400 text-xs leading-relaxed max-w-lg">
-              {t.footer.brandDesc}
+              {footer.brandDesc}
             </p>
             <div className="flex items-center gap-2 text-xs text-amber-400/90 pt-1">
               <ShieldCheck className="w-4 h-4 text-amber-400" />
-              <span>{t.footer.ministry}</span>
+              <span>{footer.ministry}</span>
             </div>
           </div>
 
           {/* Col 2: Key NSQF Sectors */}
           <div className="space-y-2">
             <h4 className="text-white font-semibold text-xs tracking-wider uppercase">
-              {t.footer.sectorsTitle}
+              {footer.sectorsTitle}
             </h4>
             <ul className="space-y-1 text-xs text-slate-400">
               {footerSectors.map((sec, idx) => (
-                <li key={idx}>• {tSector(sec)}</li>
+                <li key={idx}>• {tSector ? tSector(sec) : sec}</li>
               ))}
             </ul>
           </div>
@@ -53,17 +72,17 @@ export function Footer() {
           {/* Col 3: Helpline & Beneficiary Support */}
           <div className="space-y-2">
             <h4 className="text-white font-semibold text-xs tracking-wider uppercase">
-              {t.footer.supportTitle}
+              {footer.supportTitle}
             </h4>
             <p className="text-xs text-slate-400">
-              {t.footer.tollFreeText}
+              {footer.tollFreeText}
             </p>
             <div className="flex items-center gap-2 text-white font-semibold text-sm">
               <PhoneCall className="w-4 h-4 text-emerald-400" />
-              <span>{t.footer.tollFreeNum}</span>
+              <span>{footer.tollFreeNum}</span>
             </div>
             <p className="text-[11px] text-slate-500">
-              {t.footer.hours}
+              {footer.hours}
             </p>
           </div>
         </div>
@@ -71,9 +90,9 @@ export function Footer() {
 
       {/* Bottom Bar */}
       <div className="border-t border-slate-800 py-4 px-4 sm:px-8 text-center text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2 max-w-7xl mx-auto">
-        <p>{t.footer.rights}</p>
+        <p>{footer.rights}</p>
         <p className="flex items-center gap-1">
-          {t.footer.accessibilityNote}
+          {footer.accessibilityNote}
         </p>
       </div>
     </footer>
