@@ -54,6 +54,8 @@ export function CareerPath() {
     );
   }
 
+  const career = t?.career || {};
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-8 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
       <div className="max-w-5xl mx-auto space-y-6">
@@ -64,14 +66,14 @@ export function CareerPath() {
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>{t.career.backToRecs}</span>
+            <span>{career.backToRecs || (language === 'hi' ? 'सिफारिशों पर वापस जाएं' : 'Back to Recommendations')}</span>
           </button>
 
           <Link
             to="/assessment"
             className="text-xs font-semibold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300"
           >
-            {t.career.startNew}
+            {career.startNew || (language === 'hi' ? 'नया मूल्यांकन शुरू करें' : 'Retake Assessment')}
           </Link>
         </div>
 
@@ -79,13 +81,13 @@ export function CareerPath() {
         <div className="text-center max-w-2xl mx-auto space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 text-xs font-bold border border-emerald-200 dark:border-emerald-800">
             <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-            <span>{t.career.badge}</span>
+            <span>{career.badge || (language === 'hi' ? 'करियर सीढ़ी' : 'Career Progression')}</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            {t.career.title}
+            {career.title || (language === 'hi' ? 'आपकी व्यावसायिक करियर सीढ़ी' : 'Your Vocational Career Ladder')}
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-            {t.career.subtitle}
+            {career.subtitle || (language === 'hi' ? 'पीएम-अजय GIA के अंतर्गत चरणबद्ध प्रगति मार्ग।' : 'Step-by-step career advancement under PM-AJAY GIA.')}
           </p>
         </div>
 
@@ -157,10 +159,10 @@ export function CareerPath() {
               </div>
               <div className="text-xs text-slate-700 dark:text-slate-300 space-y-1">
                 <h4 className="font-bold text-amber-950 dark:text-amber-300 uppercase tracking-wide">
-                  {t.career.enterpriseTitle}
+                  {career.enterpriseTitle || (language === 'hi' ? 'उद्यमिता व स्वरोजगार के अवसर' : 'Enterprise & Self-Employment Opportunities')}
                 </h4>
                 <p className="leading-relaxed">
-                  {t.career.enterpriseDesc}
+                  {career.enterpriseDesc || (language === 'hi' ? 'पात्र लाभार्थी टूलकिट सहायता और रियायती ऋण प्राप्त कर सकते हैं।' : 'Eligible beneficiaries can access toolkit grants and concessional credit.')}
                 </p>
               </div>
             </div>

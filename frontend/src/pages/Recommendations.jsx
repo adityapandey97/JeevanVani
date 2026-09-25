@@ -64,6 +64,8 @@ export function Recommendations() {
     );
   }
 
+  const recs = t?.recs || {};
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-8 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
       <div className="max-w-5xl mx-auto space-y-8">
@@ -74,7 +76,7 @@ export function Recommendations() {
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>{t.recs.goBack}</span>
+            <span>{recs.goBack || (language === 'hi' ? 'पीछे जाएं' : 'Back')}</span>
           </button>
 
           <button
@@ -83,7 +85,7 @@ export function Recommendations() {
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-sm transition disabled:opacity-50"
           >
             <RotateCcw className={`w-3.5 h-3.5 ${generating ? 'animate-spin' : ''}`} />
-            <span>{t.recs.recalculate}</span>
+            <span>{recs.recalculate || (language === 'hi' ? 'सिफारिशें रीफ्रेश करें' : 'Refresh Recommendations')}</span>
           </button>
         </div>
 
@@ -91,15 +93,15 @@ export function Recommendations() {
         <div className="text-center max-w-3xl mx-auto space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 text-xs font-bold">
             <Award className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-            <span>{t.recs.matrixBadge}</span>
+            <span>{recs.matrixBadge || (language === 'hi' ? 'एआई आजीविका मिलान' : 'AI Livelihood Matching')}</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            {t.recs.title}
+            {recs.title || (language === 'hi' ? 'आपकी शीर्ष 3 कौशल सिफारिशें' : 'Your Top 3 Skilling Recommendations')}
           </h1>
 
           <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
-            {t.recs.subtitle}
+            {recs.subtitle || (language === 'hi' ? 'NSQF मानकों और पीएम-अजय GIA लाभों के अनुरूप व्यक्तिगत आजीविका मार्ग।' : 'Personalized vocational training and livelihood pathways under PM-AJAY GIA.')}
           </p>
         </div>
 
@@ -113,7 +115,7 @@ export function Recommendations() {
               to="/assessment"
               className="px-3 py-1 bg-amber-600 text-white rounded-lg text-xs font-bold hover:bg-amber-700"
             >
-              {t.recs.startVoiceAssessment}
+              {recs.startVoiceAssessment || (language === 'hi' ? 'मूल्यांकन शुरू करें' : 'Start Voice Assessment')}
             </Link>
           </div>
         )}
@@ -132,14 +134,14 @@ export function Recommendations() {
         ) : (
           <div className="bg-white dark:bg-slate-900 rounded-3xl p-12 text-center border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
             <p className="text-slate-600 dark:text-slate-300 text-sm">
-              {t.recs.noRecsFound}
+              {recs.noRecsFound || (language === 'hi' ? 'कोई सिफारिश उपलब्ध नहीं है।' : 'No recommendations found yet.')}
             </p>
             <Link
               to="/assessment"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm shadow"
             >
               <Sparkles className="w-4 h-4" />
-              <span>{t.recs.startVoiceAssessment}</span>
+              <span>{recs.startVoiceAssessment || (language === 'hi' ? 'मूल्यांकन शुरू करें' : 'Start Voice Assessment')}</span>
             </Link>
           </div>
         )}
@@ -148,10 +150,10 @@ export function Recommendations() {
         <div className="p-6 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-900 dark:to-slate-950 border border-slate-800 text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
           <div>
             <h3 className="text-base font-bold">
-              {t.recs.adjustTitle}
+              {recs.adjustTitle || (language === 'hi' ? 'अपनी प्रोफ़ाइल बदलना चाहते हैं?' : 'Want to adjust your profile?')}
             </h3>
             <p className="text-xs text-slate-300 mt-0.5">
-              {t.recs.adjustDesc}
+              {recs.adjustDesc || (language === 'hi' ? 'आप अपनी जानकारी या मूल्यांकन को अपडेट कर सकते हैं।' : 'You can update your interests or retake the assessment.')}
             </p>
           </div>
 
@@ -160,13 +162,13 @@ export function Recommendations() {
               to="/assessment"
               className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition shadow"
             >
-              {t.recs.retakeAssessment}
+              {recs.retakeAssessment || (language === 'hi' ? 'पुनः मूल्यांकन' : 'Retake Assessment')}
             </Link>
             <Link
               to="/dashboard"
               className="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold transition"
             >
-              {t.nav.dashboard}
+              {t.nav?.dashboard || (language === 'hi' ? 'डैशबोर्ड' : 'Dashboard')}
             </Link>
           </div>
         </div>

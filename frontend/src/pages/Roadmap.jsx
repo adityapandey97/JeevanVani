@@ -15,7 +15,7 @@ export function Roadmap() {
       try {
         const res = await roadmapService.getCareerRoadmap();
         if (res.success) {
-          setRoadmap(res.roadmap);
+          setRoadmap(res.roadmap || res);
         }
       } catch (err) {
         console.error('Failed to load roadmap:', err);

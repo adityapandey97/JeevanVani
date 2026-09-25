@@ -166,9 +166,14 @@ export function Courses() {
                   <div className="space-y-3">
                     {/* Level & QP Badge */}
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-forest-100 dark:bg-forest-950/60 text-forest-800 dark:text-emerald-300 border border-forest-300">
-                        NSQF Level {course.nsqf_level}
-                      </span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-forest-100 dark:bg-forest-950/60 text-forest-800 dark:text-emerald-300 border border-forest-300">
+                          NSQF Level {course.nsqf_level}
+                        </span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60">
+                          {course.source || 'Skill India Digital Hub'}
+                        </span>
+                      </div>
                       {course.qualification_pack_id && (
                         <span className="text-[10px] font-semibold text-slate-500 font-mono">
                           QP: {course.qualification_pack_id}

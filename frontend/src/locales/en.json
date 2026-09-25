@@ -243,7 +243,42 @@
     "preferredLang": "Preferred Language",
     "createAccountBtn": "Create Beneficiary Account",
     "creatingAccount": "Creating Account...",
-    "alreadyAccount": "Already have an account?"
+    "alreadyAccount": "Already have an account?",
+    "quickDemoTag": "Quick Demo Credentials (Tap to Auto-Fill)"
+  },
+  "recs": {
+    "nsqfLevel": "NSQF Level",
+    "matchScore": "Match Score",
+    "eligibility": "Eligibility",
+    "duration": "Duration",
+    "whyRecommended": "Why Recommended",
+    "freeCertNote": "100% Subsidized Certification under PM-AJAY",
+    "viewCareerPath": "View Career Ladder",
+    "alreadyHave": "Skills You Already Have",
+    "needToLearn": "Skills You Will Learn",
+    "allSkillsPresent": "All foundational skills matched! Ready for advanced assessment.",
+    "goBack": "Back",
+    "recalculate": "Refresh Recommendations",
+    "matrixBadge": "AI Livelihood Matching Matrix",
+    "title": "Your Top 3 Skilling Recommendations",
+    "subtitle": "Personalized vocational training and livelihood pathways aligned with NSQF standards and PM-AJAY GIA benefits.",
+    "startVoiceAssessment": "Start Voice Assessment",
+    "noRecsFound": "No recommendations found yet. Complete your quick voice assessment to see personalized matches.",
+    "adjustTitle": "Want to adjust your profile or explore more options?",
+    "adjustDesc": "You can update your interests, re-take the voice assessment, or explore the complete NSQF course catalog.",
+    "retakeAssessment": "Retake Assessment"
+  },
+  "career": {
+    "stage": "Stage",
+    "topStageTag": "Highest Attainable Vocational Role",
+    "experienceReq": "Experience Required",
+    "backToRecs": "Back to Recommendations",
+    "startNew": "Retake Assessment",
+    "badge": "Career Pathway & Progression",
+    "title": "Your Vocational Career Ladder",
+    "subtitle": "Step-by-step career advancement from entry-level trainee to master artisan or independent contractor under PM-AJAY GIA.",
+    "enterpriseTitle": "Enterprise & Self-Employment Opportunities",
+    "enterpriseDesc": "Eligible beneficiaries can access up to ₹50,000 toolkit grants and concessional credit through NSFDC."
   },
   "footer": {
     "brandDesc": "JeevanVaani is an AI-driven, voice-first vocational guidance and NSQF-aligned skilling recommendation platform for SC beneficiaries under the GIA component of PM-AJAY.",

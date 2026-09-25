@@ -99,6 +99,38 @@ export function LanguageProvider({ children }) {
 
   const tSkill = (skill) => skill;
 
+  const tDuration = (dur) => {
+    if (!dur) return '';
+    if (language === 'hi') {
+      return String(dur)
+        .replace(/hours/gi, 'घंटे')
+        .replace(/hour/gi, 'घंटा')
+        .replace(/months/gi, 'महीने')
+        .replace(/month/gi, 'महीना')
+        .replace(/weeks/gi, 'सप्ताह')
+        .replace(/week/gi, 'सप्ताह')
+        .replace(/days/gi, 'दिन')
+        .replace(/day/gi, 'दिन');
+    }
+    return String(dur);
+  };
+
+  const tStage = (stage) => {
+    if (!stage) return '';
+    return String(stage);
+  };
+
+  const tWage = (wage) => {
+    if (!wage) return '';
+    if (language === 'hi') {
+      return String(wage)
+        .replace(/per month/gi, 'प्रति माह')
+        .replace(/\/month/gi, ' / माह')
+        .replace(/month/gi, 'माह');
+    }
+    return String(wage);
+  };
+
   // Web Speech API text-to-speech
   const speakText = (text, onEnd) => {
     if (!('speechSynthesis' in window)) return;
@@ -141,6 +173,9 @@ export function LanguageProvider({ children }) {
         tSector,
         tEducation,
         tSkill,
+        tDuration,
+        tStage,
+        tWage,
         speakText,
         stopSpeaking,
       }}

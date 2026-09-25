@@ -4,6 +4,7 @@ import { useLanguage } from '../../context/LanguageContext';
 
 export function CareerTimeline({ careerPath = [], roleTitle: _roleTitle = '' }) {
   const { language, t, tStage, tWage } = useLanguage();
+  const career = t?.career || {};
 
   if (!careerPath || careerPath.length === 0) {
     return (
@@ -60,11 +61,11 @@ export function CareerTimeline({ careerPath = [], roleTitle: _roleTitle = '' }) 
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold px-2 py-0.5 rounded uppercase tracking-wider bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
-                      {t.career.stage} {idx + 1}
+                      {career.stage || (language === 'hi' ? 'चरण' : 'Stage')} {idx + 1}
                     </span>
                     {isFinal && (
                       <span className="text-xs font-bold px-2 py-0.5 rounded uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                        {t.career.topStageTag}
+                        {career.topStageTag || (language === 'hi' ? 'सर्वोच्च पद' : 'Top Milestone')}
                       </span>
                     )}
                   </div>
@@ -72,19 +73,19 @@ export function CareerTimeline({ careerPath = [], roleTitle: _roleTitle = '' }) 
                   {step.wage_range && (
                     <div className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-amber-800/70 self-start sm:self-auto">
                       <TrendingUp className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                      <span>{tWage(step.wage_range)}</span>
+                      <span>{tWage ? tWage(step.wage_range) : step.wage_range}</span>
                     </div>
                   )}
                 </div>
 
                 <h4 className="text-lg font-bold text-slate-900 dark:text-white mt-2">
-                  {tStage(step.title)}
+                  {tStage ? tStage(step.title) : step.title}
                 </h4>
 
                 {step.experience && (
                   <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1">
                     <Briefcase className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
-                    <span>{t.career.experienceReq}: {formatExperience(step.experience)}</span>
+                    <span>{career.experienceReq || (language === 'hi' ? 'आवश्यक अनुभव' : 'Experience Required')}: {formatExperience(step.experience)}</span>
                   </p>
                 )}
 
